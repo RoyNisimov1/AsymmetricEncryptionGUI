@@ -1,0 +1,36 @@
+
+class AlgorithmException(Exception):
+    def __init__(self, message="Current algorithm doesn't support this."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class Algorithm:
+
+    KEY_GENERATION = "key_generation"
+    ENCRYPTION = "encryption"
+    DECRYPTION = "decryption"
+    SIGNATURE = "signature"
+    VERIFICATION = "verification"
+
+
+    def __init__(self, name: str, implements: list[str] = None):
+        self.name: str = name
+        if implements is None:
+            implements = []
+        self.implements = implements
+
+    def generate_key(self, size: int):
+        raise AlgorithmException("Current algorithm doesn't support Key Generation")
+
+    def Encrypt(self, msg: bytes, key: object, password="") -> tuple[bytes, bytes]:
+        raise AlgorithmException("Current algorithm doesn't support encryption")
+
+    def Decrypt(self, ct: tuple[bytes, bytes], key: object, password="") -> bytes:
+        raise AlgorithmException("Current algorithm doesn't support decryption")
+
+    def Sign(self, msg: bytes, key: object, password=""):
+        raise AlgorithmException("Current algorithm doesn't support signing")
+
+    def Verify(self, sig: bytes, key: object, password=""):
+        raise AlgorithmException("Current algorithm doesn't support verification")
