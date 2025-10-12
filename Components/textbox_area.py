@@ -1,17 +1,19 @@
 import customtkinter as ctk
 
-class EntryBox:
+class TextBoxArea:
 
-    def __init__(self, master, text="", font=("Ariel", 20)):
+    def __init__(self, master, text="", font=("Ariel", 30)):
 
         self.master = master
         self.frame = ctk.CTkFrame(self.master)
         self.font = font
+
+
         self.text = text
         self.label = ctk.CTkLabel(self.frame, text=text, font=self.font)
         self.label.pack()
 
-        self.box = ctk.CTkEntry(self.frame, font=self.font)
+        self.box = ctk.CTkTextbox(self.frame, font=self.font)
         self.box.pack()
 
     def disable(self):
@@ -22,13 +24,11 @@ class EntryBox:
 
 
     def get_value(self) -> str:
-        return self.box.get()
-
-    def conf(self, **kwargs):
-        self.box.configure(**kwargs)
+        return self.box.get("0.0", "end")
 
     def pack(self, **kwargs):
         self.frame.pack(**kwargs)
+        self.box.pack(**kwargs)
 
     def pack_forget(self):
         self.frame.pack_forget()
