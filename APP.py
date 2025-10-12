@@ -28,11 +28,9 @@ class APP:
 
         self.root.update_idletasks()
 
-        key_gen_frame = ctk.CTkFrame(self.root)
-        encrypt_frame = ctk.CTkFrame(self.root)
-        decrypt_frame = ctk.CTkFrame(self.root)
-        signature_frame = ctk.CTkFrame(self.root)
-        verify_frame = ctk.CTkFrame(self.root)
+        self.root.after(0, lambda: self.root.state('zoomed'))
+
+
 
         def load_key(location, password=b""):
             return selected_alg.load_key(location, password=password,
@@ -145,6 +143,12 @@ class APP:
                                             command=show_verify_frame
                                             )
             buttons.append(ver_button)
+        key_gen_frame = ctk.CTkFrame(self.root)
+        encrypt_frame = ctk.CTkFrame(self.root)
+        decrypt_frame = ctk.CTkFrame(self.root)
+        signature_frame = ctk.CTkFrame(self.root)
+        verify_frame = ctk.CTkFrame(self.root)
+
 
         # ------------- key gen frame ------------------ #
 
@@ -155,7 +159,7 @@ class APP:
 
         def gen_keys_thread_task():
             global priv, pub
-            priv, pub = selected_alg.generate_key(1024)
+            priv, pub = selected_alg.generate_key(int(key_size.get()))
             priv_loc = os.path.join(dirSelector.path, "priv.clavis")
             pub_loc = os.path.join(dirSelector.path, "pub.clavis")
 
@@ -183,6 +187,17 @@ class APP:
             dirSelector.disable()
             password_entry.disable()
 
+        ctk.CTkLabel(key_gen_frame, text="Key Size: ").pack()
+
+        key_size = ctk.StringVar()
+        key_size.set("1024")
+        combobox = ctk.CTkComboBox(master=key_gen_frame,
+                                   values=["1024", "2048", "3072", "4096"],
+                                   command=lambda choice: key_size.set(choice))
+        combobox.pack(pady=20)
+        combobox.set("1024")
+        combobox.configure(state="readonly")
+
         generate_button = ctk.CTkButton(key_gen_frame, command=generate_keys, text="Generate", state="disabled")
         generate_button.pack(pady=25)
 
@@ -194,7 +209,12 @@ class APP:
                                   on_path_not_found=lambda: generate_button.configure(state="disabled"))
         dirSelector.pack()
 
-        self.root.after(0, lambda: self.root.state('zoomed'))
+
+
+
+
+
+
 
         # ------------- encrypt gen frame ------------------ #
 
@@ -243,7 +263,6 @@ class APP:
 
                 save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE, text="Select save file location")
                 save_loc.pack()
-
         NotFromFileClass()
         # ------------------ if from file is selected ----------------- #
 
@@ -281,9 +300,6 @@ class APP:
 
                 save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE, text="Select save file location")
                 save_loc.pack()
-
-
-
         FromFileClass()
 
 
