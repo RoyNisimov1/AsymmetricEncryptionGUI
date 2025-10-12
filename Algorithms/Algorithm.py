@@ -23,10 +23,10 @@ class Algorithm:
     def generate_key(self, size: int):
         raise AlgorithmException("Current algorithm doesn't support Key Generation")
 
-    def Encrypt(self, msg: bytes, key: object, password="") -> tuple[bytes, bytes]:
+    def Encrypt(self, msg: bytes, key: object, password="") -> str:
         raise AlgorithmException("Current algorithm doesn't support encryption")
 
-    def Decrypt(self, ct: tuple[bytes, bytes], key: object, password="") -> bytes:
+    def Decrypt(self, ct: str, key: object, password="") -> bytes:
         raise AlgorithmException("Current algorithm doesn't support decryption")
 
     def Sign(self, msg: bytes, key: object, password=""):
@@ -34,3 +34,9 @@ class Algorithm:
 
     def Verify(self, sig: bytes, key: object, password=""):
         raise AlgorithmException("Current algorithm doesn't support verification")
+
+    def load_key(self, location: str, password=b"", func=lambda msg, k: msg):
+        raise AlgorithmException("Current algorithm doesn't support loading data")
+
+    def export(self, key, location: str, password=b"", func=lambda msg, k: msg):
+        raise AlgorithmException("Current algorithm doesn't support export data")

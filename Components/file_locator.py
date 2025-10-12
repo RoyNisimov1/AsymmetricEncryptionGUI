@@ -50,7 +50,7 @@ class FileLocator:
         file_path = tk.filedialog.askopenfilename(
             title="Select a File",
             initialdir="/",
-            filetypes=(("Text files", "*.txt"), ("Pem files", "*.pem"), ("Clavis Files", "*.clavis"), ("All files", "*.*"))
+            filetypes=(("Clavis Files", "*.clavis"), ("All files", "*.*"))
         )
         self.path = file_path
         if file_path:  # If a file was selected
