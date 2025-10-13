@@ -239,6 +239,18 @@ class APP:
                         self.password_entry = EntryBox(not_from_file_frame, "Key password: ")
                         self.password_entry.pack()
 
+                        def paste_to_msg_box():
+                            try:
+                                clipboard_content = not_from_file_frame.clipboard_get()
+                                self.msg_entry.box.delete("0.0", tk.END)
+                                self.msg_entry.box.insert(tk.INSERT, clipboard_content)
+                            except tk.TclError:
+                                messagebox.showinfo(title="Warning", message="Empty clipboard")
+                                return
+
+                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box)
+                        self.paste_btn.pack(anchor="e")
+
                         self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
                         self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
 
@@ -267,6 +279,14 @@ class APP:
 
                         self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE, text="Select save file location")
                         self.save_loc.pack()
+
+                        def copy_output_to_clipboard():
+                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                            not_from_file_frame.clipboard_clear()
+                            not_from_file_frame.clipboard_append(text_to_copy)
+
+                        self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output", command=copy_output_to_clipboard)
+                        self.copy_btn.pack(anchor="e", padx=(10, 20))
 
                 NotFromFileClass(self.not_from_file_frame)
 
@@ -311,6 +331,14 @@ class APP:
                         self.save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE, text="Select save file location")
                         self.save_loc.pack()
 
+                        def copy_output_to_clipboard():
+                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                            from_file_frame.clipboard_clear()
+                            from_file_frame.clipboard_append(text_to_copy)
+
+                        self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output", command=copy_output_to_clipboard)
+                        self.copy_btn.pack(anchor="e", padx=(10, 20))
+
                 FromFileClass(self.from_file_frame)
         EncryptFrame()
 
@@ -343,6 +371,18 @@ class APP:
 
                     self.password_entry = EntryBox(not_from_file_frame, "Password: ")
                     self.password_entry.pack()
+
+                    def paste_to_msg_box():
+                        try:
+                            clipboard_content = not_from_file_frame.clipboard_get()
+                            self.msg_entry.box.delete("0.0", tk.END)
+                            self.msg_entry.box.insert(tk.INSERT, clipboard_content)
+                        except tk.TclError:
+                            messagebox.showinfo(title="Warning", message="Empty clipboard")
+                            return
+
+                    self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box)
+                    self.paste_btn.pack(anchor="e")
 
                     self.msg_entry = TextBoxArea(not_from_file_frame, "Ciphertext: ")
                     self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
@@ -382,6 +422,13 @@ class APP:
                                                 text="Select save file location")
                     self.save_loc.pack()
 
+                    def copy_output_to_clipboard():
+                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                        not_from_file_frame.clipboard_clear()
+                        not_from_file_frame.clipboard_append(text_to_copy)
+
+                    self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output", command=copy_output_to_clipboard)
+                    self.copy_btn.pack(anchor="e", padx=(10, 20))
 
 
 
@@ -427,6 +474,13 @@ class APP:
                                                 text="Select save file location")
                     self.save_loc.pack()
 
+                    def copy_output_to_clipboard():
+                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                        from_file_frame.clipboard_clear()
+                        from_file_frame.clipboard_append(text_to_copy)
+
+                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output", command=copy_output_to_clipboard)
+                    self.copy_btn.pack(anchor="e", padx=(10, 20))
 
         DecryptFrame()
 

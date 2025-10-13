@@ -25,6 +25,3 @@ class AESWrapper:
         cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
         msg = unpad(cipher.decrypt(ciphertext), AES.block_size)
         return msg
-
-
-
