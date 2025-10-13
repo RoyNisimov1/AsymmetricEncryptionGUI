@@ -1,6 +1,7 @@
 import os.path
 import threading
 import tkinter as tk
+from tkinter import messagebox
 import customtkinter as ctk
 
 from Algorithms.AESWrapper import AESWrapper
@@ -13,7 +14,7 @@ from Components.Radiobutton_manager import RadiobuttonManager
 
 
 class APP:
-    
+
     def __init__(self):
         FONT = "Ariel"
 
@@ -30,11 +31,14 @@ class APP:
 
         self.root.after(0, lambda: self.root.state('zoomed'))
 
-
-
         def load_key(location, password=b""):
-            return selected_alg.load_key(location, password=password,
-                       func=lambda msg, key: AESWrapper.decrypt(AESWrapper.generate_key(password=b"", salt=key), msg))
+            try:
+                return selected_alg.load_key(location, password=password,
+                                             func=lambda msg, key: AESWrapper.decrypt(
+                                                 AESWrapper.generate_key(password=password, salt=key), msg))
+            except Exception as e:
+                messagebox.showinfo("Error!", f"Exception '{e}' occurred. Can not load key! Check the password field or the algorithem type")
+            return None
 
         # -------------- Algorithm choosing widgets -------------- #
         selector_frame = ctk.CTkFrame(self.root)
@@ -55,6 +59,7 @@ class APP:
         def hide_buttons():
             for button in buttons:
                 button.pack_forget()
+            show_key_gen_frame()
             func_var.set(0)
 
         file_locator = FileLocator(self.root, on_path_found=show_buttons, on_path_not_found=hide_buttons,
@@ -149,7 +154,6 @@ class APP:
         signature_frame = ctk.CTkFrame(self.root)
         verify_frame = ctk.CTkFrame(self.root)
 
-
         # ------------- key gen frame ------------------ #
 
         show_key_gen_frame()
@@ -209,108 +213,226 @@ class APP:
                                   on_path_not_found=lambda: generate_button.configure(state="disabled"))
         dirSelector.pack()
 
-
-
-
-
-
-
-
         # ------------- encrypt gen frame ------------------ #
 
-        from_file_frame = ctk.CTkFrame(encrypt_frame)
-
-        not_from_file_frame = ctk.CTkFrame(encrypt_frame)
-
-        def switch_frames():
-            if from_file_checkbox.get():
-                from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
-                not_from_file_frame.pack_forget()
-            else:
-                from_file_frame.pack_forget()
-                not_from_file_frame.pack(fill=tk.X, expand=True,  anchor="n")
-
-        from_file_checkbox = ctk.CTkCheckBox(encrypt_frame, text="From file?", command=switch_frames)
-        from_file_checkbox.pack()
-        switch_frames()
-
-        # ------------------ if not from file is selected ----------------- #
-        class NotFromFileClass:
+        class EncryptFrame:
             def __init__(self):
-                msg_entry = TextBoxArea(not_from_file_frame, "Message:")
-                msg_entry.pack(fill=tk.X, expand=True, anchor="w")
+                self.from_file_frame = ctk.CTkFrame(encrypt_frame)
 
-                def encrypt_data():
-                    key = load_key(file_locator.path, b"")
-                    data = msg_entry.get_value().encode("utf-8")
-                    cipher = selected_alg.Encrypt(data, key, password_entry.get_value().encode("utf-8"))
-                    output_box.box.configure(state="normal")
-                    output_box.box.delete("0.0", "end")
-                    output_box.box.insert("0.0", cipher)
-                    output_box.box.configure(state="disabled")
-                    if save_loc.path != "":
-                        with open(save_loc.path, "w") as f:
-                            f.write(cipher)
-                    return cipher
+                self.not_from_file_frame = ctk.CTkFrame(encrypt_frame)
 
-                output_box = TextBoxArea(not_from_file_frame, text="Output:")
-                output_box.box.configure(state="disabled")
+                def switch_frames():
+                    if self.from_file_checkbox.get():
+                        self.from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
+                        self.not_from_file_frame.pack_forget()
+                    else:
+                        self.from_file_frame.pack_forget()
+                        self.not_from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
 
-                output_box.pack(fill=tk.X, expand=True, anchor="w")
+                self.from_file_checkbox = ctk.CTkCheckBox(encrypt_frame, text="From file?", command=switch_frames)
+                self.from_file_checkbox.pack()
+                switch_frames()
 
-                encrypt_btn = ctk.CTkButton(not_from_file_frame, text="Encrypt", command=encrypt_data)
-                encrypt_btn.pack(pady=(10, 10))
+                # ------------------ if not from file is selected ----------------- #
+                class NotFromFileClass:
+                    def __init__(self, not_from_file_frame):
+                        self.password_entry = EntryBox(not_from_file_frame, "Key password: ")
+                        self.password_entry.pack()
 
-                save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE, text="Select save file location")
-                save_loc.pack()
-        NotFromFileClass()
-        # ------------------ if from file is selected ----------------- #
+                        self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
+                        self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
 
-        class FromFileClass:
+                        def encrypt_data():
+                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            if key is None:
+                                return ""
+                            data = self.msg_entry.get_value().encode("utf-8")
+                            cipher = selected_alg.Encrypt(data, key, b"")
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0", cipher)
+                            self.output_box.box.configure(state="disabled")
+                            if self.save_loc.path != "":
+                                with open(self.save_loc.path, "w") as f:
+                                    f.write(cipher)
+                            return cipher
 
-            def __init__(self):
-                from_file_asker = FileLocator(from_file_frame, text="File to encrypt",
-                                              on_path_not_found=lambda: encrypt_btn.configure(state="disabled"), on_path_found=lambda: encrypt_btn.configure(state="normal"))
-                from_file_asker.pack()
+                        self.output_box = TextBoxArea(not_from_file_frame, text="Output:")
+                        self.output_box.box.configure(state="disabled")
 
-                def encrypt_data():
-                    key = load_key(file_locator.path, b"")
-                    with open(from_file_asker.path, "rb") as f:
-                        data = f.read()
-                    cipher = selected_alg.Encrypt(data, key, password_entry.get_value().encode("utf-8"))
-                    output_box.box.configure(state="normal")
-                    output_box.box.delete("0.0", "end")
-                    output_box.box.insert("0.0", cipher)
-                    output_box.box.configure(state="disabled")
-                    if save_loc.path != "":
-                        with open(save_loc.path, "w") as f:
-                            f.write(cipher)
-                    return cipher
+                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
 
+                        self.encrypt_btn = ctk.CTkButton(not_from_file_frame, text="Encrypt", command=encrypt_data)
+                        self.encrypt_btn.pack(pady=(10, 10))
 
+                        self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE, text="Select save file location")
+                        self.save_loc.pack()
 
-                output_box = TextBoxArea(from_file_frame, text="Output:")
-                output_box.box.configure(state="disabled")
+                NotFromFileClass(self.not_from_file_frame)
 
-                output_box.pack(fill=tk.X, expand=True, anchor="w")
+                # ------------------ if from file is selected ----------------- #
 
-                encrypt_btn = ctk.CTkButton(from_file_frame, text="Encrypt", command=encrypt_data)
-                encrypt_btn.configure(state="disabled")
-                encrypt_btn.pack(pady=(10, 10))
+                class FromFileClass:
 
-                save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE, text="Select save file location")
-                save_loc.pack()
-        FromFileClass()
+                    def __init__(self, from_file_frame):
+                        self.password_entry = EntryBox(from_file_frame, "Key password: ")
+                        self.password_entry.pack()
 
+                        self.from_file_asker = FileLocator(from_file_frame, text="File to encrypt",
+                                                      on_path_not_found=lambda: self.encrypt_btn.configure(state="disabled"),
+                                                      on_path_found=lambda: self.encrypt_btn.configure(state="normal"))
+                        self.from_file_asker.pack()
 
+                        def encrypt_data():
+                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            if key is None:
+                                return ""
+                            with open(self.from_file_asker.path, "rb") as f:
+                                data = f.read()
+                            cipher = selected_alg.Encrypt(data, key, b"")
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0", cipher)
+                            self.output_box.box.configure(state="disabled")
+                            if self.save_loc.path != "":
+                                with open(self.save_loc.path, "w") as f:
+                                    f.write(cipher)
+                            return cipher
+
+                        self.output_box = TextBoxArea(from_file_frame, text="Output:")
+                        self.output_box.box.configure(state="disabled")
+
+                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                        self.encrypt_btn = ctk.CTkButton(from_file_frame, text="Encrypt", command=encrypt_data)
+                        self.encrypt_btn.configure(state="disabled")
+                        self.encrypt_btn.pack(pady=(10, 10))
+
+                        self.save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE, text="Select save file location")
+                        self.save_loc.pack()
+
+                FromFileClass(self.from_file_frame)
+        EncryptFrame()
 
         # ------------- decrypt gen frame ------------------ #
 
+        class DecryptFrame:
+
+            def __init__(self):
+                self.from_file_frame = ctk.CTkFrame(decrypt_frame)
+
+                self.not_from_file_frame = ctk.CTkFrame(decrypt_frame)
+
+                self.from_file_checkbox = ctk.CTkCheckBox(decrypt_frame, text="From file?", command=self.switch_frames)
+                self.from_file_checkbox.pack()
+                self.switch_frames()
+
+                self.FromFileSelected(self.from_file_frame)
+                self.FromFileNotSelected(self.not_from_file_frame)
+
+            def switch_frames(self):
+                if self.from_file_checkbox.get():
+                    self.from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
+                    self.not_from_file_frame.pack_forget()
+                else:
+                    self.from_file_frame.pack_forget()
+                    self.not_from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
+
+            class FromFileNotSelected:
+                def __init__(self, not_from_file_frame):
+
+                    self.password_entry = EntryBox(not_from_file_frame, "Password: ")
+                    self.password_entry.pack()
+
+                    self.msg_entry = TextBoxArea(not_from_file_frame, "Ciphertext: ")
+                    self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
+
+                    def decrypt_data():
+                        key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                        if key is None:
+                            return ""
+                        data = self.msg_entry.get_value()
+                        if not key.has_private:
+                            messagebox.showinfo(title="Error", message="The selected key is public! can not decrypt!")
+                            return ""
+                        try:
+                            msg = selected_alg.Decrypt(data, key, b"")
+                        except Exception as e:
+                            messagebox.showinfo("Error!", "Can not decrypt!")
+                            return ""
+
+                        self.output_box.box.configure(state="normal")
+                        self.output_box.box.delete("0.0", "end")
+                        self.output_box.box.insert("0.0", msg)
+                        self.output_box.box.configure(state="disabled")
+                        if self.save_loc.path != "":
+                            with open(self.save_loc.path, "w") as f:
+                                f.write(msg)
+                        return msg
+
+                    self.output_box = TextBoxArea(not_from_file_frame, text="Output:")
+                    self.output_box.box.configure(state="disabled")
+
+                    self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                    self.decrypt_btn = ctk.CTkButton(not_from_file_frame, text="Decrypt", command=decrypt_data)
+                    self.decrypt_btn.pack(pady=(10, 10))
+
+                    self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE,
+                                                text="Select save file location")
+                    self.save_loc.pack()
+
+
+
+
+
+            class FromFileSelected:
+
+                def __init__(self, from_file_frame):
+                    self.password_entry = EntryBox(from_file_frame, "Key password: ")
+                    self.password_entry.pack()
+
+                    self.from_file_asker = FileLocator(from_file_frame, text="File to Decrypt",
+                                                       on_path_not_found=lambda: self.decrypt_btn.configure(
+                                                           state="disabled"),
+                                                       on_path_found=lambda: self.decrypt_btn.configure(state="normal"))
+                    self.from_file_asker.pack()
+
+                    def decrypt_data():
+                        key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                        if key is None:
+                            return ""
+                        with open(self.from_file_asker.path, "rb") as f:
+                            data = f.read()
+                        cipher = selected_alg.Decrypt(data, key, b"")
+                        self.output_box.box.configure(state="normal")
+                        self.output_box.box.delete("0.0", "end")
+                        self.output_box.box.insert("0.0", cipher)
+                        self.output_box.box.configure(state="disabled")
+                        if self.save_loc.path != "":
+                            with open(self.save_loc.path, "w") as f:
+                                f.write(cipher)
+                        return cipher
+
+                    self.output_box = TextBoxArea(from_file_frame, text="Output:")
+                    self.output_box.box.configure(state="disabled")
+
+                    self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                    self.decrypt_btn = ctk.CTkButton(from_file_frame, text="Decrypt", command=decrypt_data)
+                    self.decrypt_btn.configure(state="disabled")
+                    self.decrypt_btn.pack(pady=(10, 10))
+
+                    self.save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE,
+                                                text="Select save file location")
+                    self.save_loc.pack()
+
+
+        DecryptFrame()
 
         # ------------- sign gen frame ------------------ #
 
         # ------------- verify gen frame ------------------ #
-
 
     def mainloop(self, *args, **kwargs):
         self.root.mainloop(*args, **kwargs)
