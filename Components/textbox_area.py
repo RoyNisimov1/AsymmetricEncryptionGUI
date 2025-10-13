@@ -5,7 +5,7 @@ class TextBoxArea:
     def __init__(self, master, text="", font=("Ariel", 30)):
 
         self.master = master
-        self.frame = ctk.CTkFrame(self.master)
+        self.frame = ctk.CTkFrame(self.master, fg_color=("#D9D9D9", "#2B2B2B"))
         self.font = font
 
 

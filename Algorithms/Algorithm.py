@@ -29,10 +29,10 @@ class Algorithm:
     def Decrypt(self, ct: str, key: object, password="") -> bytes:
         raise AlgorithmException("Current algorithm doesn't support decryption")
 
-    def Sign(self, msg: bytes, key: object, password=""):
+    def Sign(self, msg: bytes, key: object):
         raise AlgorithmException("Current algorithm doesn't support signing")
 
-    def Verify(self, sig: bytes, key: object, password=""):
+    def Verify(self, sig: bytes, key: object):
         raise AlgorithmException("Current algorithm doesn't support verification")
 
     def load_key(self, location: str, password=b"", func=lambda msg, k: msg):

@@ -18,14 +18,14 @@ class FileLocator:
         self.text = text
         self.master = master
 
-        self.frame = ctk.CTkFrame(self.master)
+        self.frame = ctk.CTkFrame(self.master, fg_color=("#D9D9D9", "#2B2B2B"))
 
         self.select_button = ctk.CTkButton(self.frame, text=self.text, command=self.create_func())
-        self.select_button.pack(pady=(10, 20))
+        self.select_button.grid(row=0, column=0, padx=(10, 10))
 
         # Create a label to display the selected file path
         self.label = ctk.CTkLabel(self.frame, text="No path selected.")
-        self.label.pack()
+        self.label.grid(row=0, column=1)
 
     def disable(self):
         self.select_button.configure(state="disabled")

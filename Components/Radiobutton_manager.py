@@ -7,7 +7,7 @@ class RadiobuttonManager:
 
         self.master = master
         self.btns = btns
-        self.frame = ctk.CTkFrame(self.master)
+        self.frame = ctk.CTkFrame(self.master, fg_color=("#D9D9D9", "#2B2B2B"))
 
         self.chosen_alg_index = ctk.IntVar()
         alg_buttons = []

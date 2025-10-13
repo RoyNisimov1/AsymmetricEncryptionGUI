@@ -25,13 +25,45 @@ class RSAAlg(Algorithm):
         return output
 
     def Decrypt(self, ct: str, key: RSAKey, password="") -> bytes:
-        jDict = json.loads(ct)
-        encrypted_symmetric_key = base64.b64decode(jDict["encrypted_symmetric_key"])
-        encrypted_data = base64.b64decode(jDict["encrypted_data"])
-        cipher = RSA(key)
-        symmetric_key = cipher.decrypt(encrypted_symmetric_key)
-        msg = AESWrapper.decrypt(symmetric_key, encrypted_data)
-        return msg
+        try:
+            jDict = json.loads(ct)
+            encrypted_symmetric_key = base64.b64decode(jDict["encrypted_symmetric_key"])
+            encrypted_data = base64.b64decode(jDict["encrypted_data"])
+            cipher = RSA(key)
+            symmetric_key = cipher.decrypt(encrypted_symmetric_key)
+            msg = AESWrapper.decrypt(symmetric_key, encrypted_data)
+            return msg
+        except Exception:
+            return ""
+
+    def Sign(self, msg: bytes, key: RSAKey):
+        cipher: RSA = RSA(key)
+        sig: bytes = cipher.sign(msg)
+        og_msg_b64 = base64.b64encode(msg).decode("utf-8")
+        signature_b64 = base64.b64encode(sig).decode("utf-8")
+        jDict = {"original_message": og_msg_b64, "signature": signature_b64}
+        try:
+            m = msg.decode("utf-8")
+            jDict["message"] = m
+        except Exception:
+            m = ""
+        output = json.dumps(jDict, indent=2)
+        return output
+
+    def Verify(self, sig: str, key: RSAKey):
+
+        try:
+            jDict = json.loads(sig)
+            og_msg = base64.b64decode(jDict["original_message"])
+            signature = base64.b64decode(jDict["signature"])
+            cipher: RSA = RSA(key)
+            cipher.verify(signature, og_msg)
+            return True
+        except Exception:
+            return False
+
+
+
 
 
     def export(self, key: RSAKey, location: str, password=b"", func=lambda msg, k: msg):

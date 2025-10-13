@@ -14,16 +14,18 @@ from Components.Radiobutton_manager import RadiobuttonManager
 
 
 class APP:
+    frame_color = ("#D9D9D9", "#2B2B2B")
 
     def __init__(self):
         FONT = "Ariel"
 
         # -------------- Initialise window --------------- #
         ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("blue")
+        ctk.set_default_color_theme("green")
         self.root = ctk.CTk()
         self.root.title("Clavis")
         self.root.geometry()
+        self.root.configure(fg_color=APP.frame_color)
         icon_loc = "Assets/Clavis.ico"
         self.root.iconbitmap(icon_loc)
 
@@ -37,11 +39,12 @@ class APP:
                                              func=lambda msg, key: AESWrapper.decrypt(
                                                  AESWrapper.generate_key(password=password, salt=key), msg))
             except Exception as e:
-                messagebox.showinfo("Error!", f"Exception '{e}' occurred. Can not load key! Check the password field or the algorithem type")
+                messagebox.showinfo("Error!",
+                                    f"Exception '{e}' occurred. Can not load key! Check the password field or the algorithem type")
             return None
 
         # -------------- Algorithm choosing widgets -------------- #
-        selector_frame = ctk.CTkFrame(self.root)
+        selector_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
         selector_frame.pack()
         algs_titles = [alg.name for alg in Global().algorithms]
         algs_selector = RadiobuttonManager(selector_frame, algs_titles)
@@ -68,7 +71,7 @@ class APP:
 
         # ------------- Function choosing --------------- #
 
-        buttons_frame = ctk.CTkFrame(self.root)
+        buttons_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
         buttons_frame.pack(anchor="w", pady=10, padx=10)
 
         func_var = tk.IntVar()
@@ -148,18 +151,18 @@ class APP:
                                             command=show_verify_frame
                                             )
             buttons.append(ver_button)
-        key_gen_frame = ctk.CTkFrame(self.root)
-        encrypt_frame = ctk.CTkFrame(self.root)
-        decrypt_frame = ctk.CTkFrame(self.root)
-        signature_frame = ctk.CTkFrame(self.root)
-        verify_frame = ctk.CTkFrame(self.root)
+        key_gen_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
+        encrypt_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
+        decrypt_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
+        signature_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
+        verify_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
 
         # ------------- key gen frame ------------------ #
 
         show_key_gen_frame()
         priv, pub = None, None
 
-        generate_label = ctk.CTkLabel(key_gen_frame, text="Generating keys")
+        generate_label = ctk.CTkLabel(key_gen_frame, text="")
 
         def gen_keys_thread_task():
             global priv, pub
@@ -178,18 +181,17 @@ class APP:
             generate_button.configure(state="normal")
             dirSelector.enable()
             password_entry.enable()
-            generate_label.configure(text="Generated!")
-            self.root.after(1000, lambda: generate_label.pack_forget())
+            generate_label.configure(text="Generated! ✅")
+            self.root.after(1000, lambda: generate_label.configure(text=""))
 
         def generate_keys():
             global priv, pub
             key_gen_thread = threading.Thread(daemon=True, target=gen_keys_thread_task)
-            key_gen_thread.start()
             generate_label.configure(text="Generating keys")
-            generate_label.pack()
             generate_button.configure(state="disabled")
             dirSelector.disable()
             password_entry.disable()
+            key_gen_thread.start()
 
         ctk.CTkLabel(key_gen_frame, text="Key Size: ").pack()
 
@@ -202,24 +204,26 @@ class APP:
         combobox.set("1024")
         combobox.configure(state="readonly")
 
-        generate_button = ctk.CTkButton(key_gen_frame, command=generate_keys, text="Generate", state="disabled")
-        generate_button.pack(pady=25)
-
         password_entry = EntryBox(key_gen_frame, text="Password: ")
-        password_entry.pack()
+        password_entry.pack(pady=10)
 
         dirSelector = FileLocator(master=key_gen_frame, search_type=FileLocator.SAVE_DIR, text="Select save directory",
                                   on_path_found=lambda: generate_button.configure(state="normal"),
                                   on_path_not_found=lambda: generate_button.configure(state="disabled"))
         dirSelector.pack()
 
+        generate_button = ctk.CTkButton(key_gen_frame, command=generate_keys, text="Generate", state="disabled")
+        generate_button.pack(pady=25)
+
+        generate_label.pack()
+
         # ------------- encrypt gen frame ------------------ #
 
         class EncryptFrame:
             def __init__(self):
-                self.from_file_frame = ctk.CTkFrame(encrypt_frame)
+                self.from_file_frame = ctk.CTkFrame(encrypt_frame, fg_color=APP.frame_color)
 
-                self.not_from_file_frame = ctk.CTkFrame(encrypt_frame)
+                self.not_from_file_frame = ctk.CTkFrame(encrypt_frame, fg_color=APP.frame_color)
 
                 def switch_frames():
                     if self.from_file_checkbox.get():
@@ -277,7 +281,8 @@ class APP:
                         self.encrypt_btn = ctk.CTkButton(not_from_file_frame, text="Encrypt", command=encrypt_data)
                         self.encrypt_btn.pack(pady=(10, 10))
 
-                        self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE, text="Select save file location")
+                        self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE,
+                                                    text="Select save file location")
                         self.save_loc.pack()
 
                         def copy_output_to_clipboard():
@@ -285,7 +290,8 @@ class APP:
                             not_from_file_frame.clipboard_clear()
                             not_from_file_frame.clipboard_append(text_to_copy)
 
-                        self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output", command=copy_output_to_clipboard)
+                        self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
+                                                      command=copy_output_to_clipboard)
                         self.copy_btn.pack(anchor="e", padx=(10, 20))
 
                 NotFromFileClass(self.not_from_file_frame)
@@ -299,8 +305,10 @@ class APP:
                         self.password_entry.pack()
 
                         self.from_file_asker = FileLocator(from_file_frame, text="File to encrypt",
-                                                      on_path_not_found=lambda: self.encrypt_btn.configure(state="disabled"),
-                                                      on_path_found=lambda: self.encrypt_btn.configure(state="normal"))
+                                                           on_path_not_found=lambda: self.encrypt_btn.configure(
+                                                               state="disabled"),
+                                                           on_path_found=lambda: self.encrypt_btn.configure(
+                                                               state="normal"))
                         self.from_file_asker.pack()
 
                         def encrypt_data():
@@ -328,7 +336,8 @@ class APP:
                         self.encrypt_btn.configure(state="disabled")
                         self.encrypt_btn.pack(pady=(10, 10))
 
-                        self.save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE, text="Select save file location")
+                        self.save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE,
+                                                    text="Select save file location")
                         self.save_loc.pack()
 
                         def copy_output_to_clipboard():
@@ -336,10 +345,12 @@ class APP:
                             from_file_frame.clipboard_clear()
                             from_file_frame.clipboard_append(text_to_copy)
 
-                        self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output", command=copy_output_to_clipboard)
+                        self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
+                                                      command=copy_output_to_clipboard)
                         self.copy_btn.pack(anchor="e", padx=(10, 20))
 
                 FromFileClass(self.from_file_frame)
+
         EncryptFrame()
 
         # ------------- decrypt gen frame ------------------ #
@@ -347,9 +358,9 @@ class APP:
         class DecryptFrame:
 
             def __init__(self):
-                self.from_file_frame = ctk.CTkFrame(decrypt_frame)
+                self.from_file_frame = ctk.CTkFrame(decrypt_frame, fg_color=APP.frame_color)
 
-                self.not_from_file_frame = ctk.CTkFrame(decrypt_frame)
+                self.not_from_file_frame = ctk.CTkFrame(decrypt_frame, fg_color=APP.frame_color)
 
                 self.from_file_checkbox = ctk.CTkCheckBox(decrypt_frame, text="From file?", command=self.switch_frames)
                 self.from_file_checkbox.pack()
@@ -427,11 +438,9 @@ class APP:
                         not_from_file_frame.clipboard_clear()
                         not_from_file_frame.clipboard_append(text_to_copy)
 
-                    self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output", command=copy_output_to_clipboard)
+                    self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
+                                                  command=copy_output_to_clipboard)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
-
-
-
 
             class FromFileSelected:
 
@@ -484,9 +493,274 @@ class APP:
 
         DecryptFrame()
 
-        # ------------- sign gen frame ------------------ #
+        # ------------- Sign gen frame ------------------ #
 
-        # ------------- verify gen frame ------------------ #
+        class SignatureFrame:
+            def __init__(self):
+                self.from_file_frame = ctk.CTkFrame(signature_frame, fg_color=APP.frame_color)
+
+                self.not_from_file_frame = ctk.CTkFrame(signature_frame, fg_color=APP.frame_color)
+
+                def switch_frames():
+                    if self.from_file_checkbox.get():
+                        self.from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
+                        self.not_from_file_frame.pack_forget()
+                    else:
+                        self.from_file_frame.pack_forget()
+                        self.not_from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
+
+                self.from_file_checkbox = ctk.CTkCheckBox(signature_frame, text="From file?", command=switch_frames)
+                self.from_file_checkbox.pack()
+                switch_frames()
+
+                # ------------------ if not from file is selected ----------------- #
+                class NotFromFileClass:
+                    def __init__(self, not_from_file_frame):
+                        self.password_entry = EntryBox(not_from_file_frame, "Key password: ")
+                        self.password_entry.pack()
+
+                        def paste_to_msg_box():
+                            try:
+                                clipboard_content = not_from_file_frame.clipboard_get()
+                                self.msg_entry.box.delete("0.0", tk.END)
+                                self.msg_entry.box.insert(tk.INSERT, clipboard_content)
+                            except tk.TclError:
+                                messagebox.showinfo(title="Warning", message="Empty clipboard")
+                                return
+
+                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box)
+                        self.paste_btn.pack(anchor="e")
+
+                        self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
+                        self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
+
+                        def sign_data():
+                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            if key is None:
+                                return ""
+                            data = self.msg_entry.get_value().encode("utf-8")
+                            if not key.has_private:
+                                messagebox.showinfo("Key is public", "Key is public therefore we can not sign")
+                                return ""
+                            signature = selected_alg.Sign(data, key)
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0", signature)
+                            self.output_box.box.configure(state="disabled")
+                            if self.save_loc.path != "":
+                                with open(self.save_loc.path, "w") as f:
+                                    f.write(signature)
+                            return signature
+
+                        self.output_box = TextBoxArea(not_from_file_frame, text="Output:")
+                        self.output_box.box.configure(state="disabled")
+
+                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                        self.sign_btn = ctk.CTkButton(not_from_file_frame, text="Sign", command=sign_data)
+                        self.sign_btn.pack(pady=(10, 10))
+
+                        self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE,
+                                                    text="Select save file location")
+                        self.save_loc.pack()
+
+                        def copy_output_to_clipboard():
+                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                            not_from_file_frame.clipboard_clear()
+                            not_from_file_frame.clipboard_append(text_to_copy)
+
+                        self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
+                                                      command=copy_output_to_clipboard)
+                        self.copy_btn.pack(anchor="e", padx=(10, 20))
+
+                NotFromFileClass(self.not_from_file_frame)
+
+                # ------------------ if from file is selected ----------------- #
+
+                class FromFileClass:
+
+                    def __init__(self, from_file_frame):
+                        self.password_entry = EntryBox(from_file_frame, "Key password: ")
+                        self.password_entry.pack()
+
+                        self.from_file_asker = FileLocator(from_file_frame, text="File to sign",
+                                                           on_path_not_found=lambda: self.sign_btn.configure(
+                                                               state="disabled"),
+                                                           on_path_found=lambda: self.sign_btn.configure(
+                                                               state="normal"))
+                        self.from_file_asker.pack()
+
+                        def sign_data():
+                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            if key is None:
+                                return ""
+                            with open(self.from_file_asker.path, "rb") as f:
+                                data = f.read()
+                            signature = selected_alg.Sign(data, key)
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0", signature)
+                            self.output_box.box.configure(state="disabled")
+                            if self.save_loc.path != "":
+                                with open(self.save_loc.path, "w") as f:
+                                    f.write(signature)
+                            return signature
+
+                        self.output_box = TextBoxArea(from_file_frame, text="Output:")
+                        self.output_box.box.configure(state="disabled")
+
+                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                        self.sign_btn = ctk.CTkButton(from_file_frame, text="Sign", command=sign_data)
+                        self.sign_btn.configure(state="disabled")
+                        self.sign_btn.pack(pady=(10, 10))
+
+                        self.save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE,
+                                                    text="Select save file location")
+                        self.save_loc.pack()
+
+                        def copy_output_to_clipboard():
+                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                            from_file_frame.clipboard_clear()
+                            from_file_frame.clipboard_append(text_to_copy)
+
+                        self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
+                                                      command=copy_output_to_clipboard)
+                        self.copy_btn.pack(anchor="e", padx=(10, 20))
+
+                FromFileClass(self.from_file_frame)
+
+        SignatureFrame()
+
+        # ------------- Verify gen frame ------------------ #
+
+        class VerifyFrame:
+            def __init__(self):
+                self.from_file_frame = ctk.CTkFrame(verify_frame, fg_color=APP.frame_color)
+
+                self.not_from_file_frame = ctk.CTkFrame(verify_frame, fg_color=APP.frame_color)
+
+                def switch_frames():
+                    if self.from_file_checkbox.get():
+                        self.from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
+                        self.not_from_file_frame.pack_forget()
+                    else:
+                        self.from_file_frame.pack_forget()
+                        self.not_from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
+
+                self.from_file_checkbox = ctk.CTkCheckBox(verify_frame, text="From file?", command=switch_frames)
+                self.from_file_checkbox.pack()
+                switch_frames()
+
+                # ------------------ if not from file is selected ----------------- #
+                class NotFromFileClass:
+                    def __init__(self, not_from_file_frame):
+                        self.password_entry = EntryBox(not_from_file_frame, "Key password: ")
+                        self.password_entry.pack()
+
+                        def paste_to_msg_box():
+                            try:
+                                clipboard_content = not_from_file_frame.clipboard_get()
+                                self.msg_entry.box.delete("0.0", tk.END)
+                                self.msg_entry.box.insert(tk.INSERT, clipboard_content)
+                            except tk.TclError:
+                                messagebox.showinfo(title="Warning", message="Empty clipboard")
+                                return
+
+                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box)
+                        self.paste_btn.pack(anchor="e")
+
+                        self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
+                        self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
+
+                        def verify_data():
+                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            if key is None:
+                                return ""
+                            data = self.msg_entry.get_value().encode("utf-8")
+                            verification = selected_alg.Verify(data, key)
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            if verification:
+                                self.output_box.box.insert("0.0", "Verified successful!")
+                            else:
+                                self.output_box.box.insert("0.0", "Verification unsuccessful, signature is wrong!")
+
+                            self.output_box.box.configure(state="disabled")
+                            return verification
+
+                        self.output_box = TextBoxArea(not_from_file_frame, text="Output:")
+                        self.output_box.box.configure(state="disabled")
+
+                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                        self.verify_btn = ctk.CTkButton(not_from_file_frame, text="Verify", command=verify_data)
+                        self.verify_btn.pack(pady=(10, 10))
+
+                        def copy_output_to_clipboard():
+                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                            not_from_file_frame.clipboard_clear()
+                            not_from_file_frame.clipboard_append(text_to_copy)
+
+                        self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
+                                                      command=copy_output_to_clipboard)
+                        self.copy_btn.pack(anchor="e", padx=(10, 20))
+
+                NotFromFileClass(self.not_from_file_frame)
+
+                # ------------------ if from file is selected ----------------- #
+
+                class FromFileClass:
+
+                    def __init__(self, from_file_frame):
+                        self.password_entry = EntryBox(from_file_frame, "Key password: ")
+                        self.password_entry.pack()
+
+                        self.from_file_asker = FileLocator(from_file_frame, text="File to sign",
+                                                           on_path_not_found=lambda: self.verify_btn.configure(
+                                                               state="disabled"),
+                                                           on_path_found=lambda: self.verify_btn.configure(
+                                                               state="normal"))
+                        self.from_file_asker.pack()
+
+                        def verify_data():
+                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            if key is None:
+                                return ""
+                            with open(self.from_file_asker.path, "r") as f:
+                                data = f.read()
+                            verification = selected_alg.Verify(data, key)
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            if verification:
+                                self.output_box.box.insert("0.0", "Verified successful!")
+                            else:
+                                self.output_box.box.insert("0.0", "Verification unsuccessful, signature is wrong!")
+
+                            self.output_box.box.configure(state="disabled")
+                            return verification
+
+                        self.output_box = TextBoxArea(from_file_frame, text="Output:")
+                        self.output_box.box.configure(state="disabled")
+
+                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                        self.verify_btn = ctk.CTkButton(from_file_frame, text="Verify", command=verify_data)
+                        self.verify_btn.configure(state="disabled")
+                        self.verify_btn.pack(pady=(10, 10))
+
+                        def copy_output_to_clipboard():
+                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                            from_file_frame.clipboard_clear()
+                            from_file_frame.clipboard_append(text_to_copy)
+
+                        self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
+                                                      command=copy_output_to_clipboard)
+                        self.copy_btn.pack(anchor="e", padx=(10, 20))
+
+                FromFileClass(self.from_file_frame)
+
+        VerifyFrame()
 
     def mainloop(self, *args, **kwargs):
         self.root.mainloop(*args, **kwargs)
