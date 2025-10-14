@@ -42,16 +42,10 @@ class RSAAlg(Algorithm):
         og_msg_b64 = base64.b64encode(msg).decode("utf-8")
         signature_b64 = base64.b64encode(sig).decode("utf-8")
         jDict = {"original_message": og_msg_b64, "signature": signature_b64}
-        try:
-            m = msg.decode("utf-8")
-            jDict["message"] = m
-        except Exception:
-            m = ""
         output = json.dumps(jDict, indent=2)
         return output
 
     def Verify(self, sig: str, key: RSAKey):
-
         try:
             jDict = json.loads(sig)
             og_msg = base64.b64decode(jDict["original_message"])

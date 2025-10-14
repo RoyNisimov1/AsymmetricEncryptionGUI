@@ -7,11 +7,11 @@ class AlgorithmException(Exception):
 
 class Algorithm:
 
-    KEY_GENERATION = "key_generation"
-    ENCRYPTION = "encryption"
-    DECRYPTION = "decryption"
-    SIGNATURE = "signature"
-    VERIFICATION = "verification"
+    KEY_GENERATION = 0
+    ENCRYPTION = 1
+    DECRYPTION = 2
+    SIGNATURE = 3
+    VERIFICATION = 4
 
 
     def __init__(self, name: str, implements: list[str] = None):

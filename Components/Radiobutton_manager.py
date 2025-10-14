@@ -3,12 +3,12 @@ import customtkinter as ctk
 
 class RadiobuttonManager:
 
-    def __init__(self, master, btns: list[str], font=("Ariel", 30)):
+    def __init__(self, master, btns: list[str], font=("Ariel", 30), command=lambda: None):
 
         self.master = master
         self.btns = btns
         self.frame = ctk.CTkFrame(self.master, fg_color=("#D9D9D9", "#2B2B2B"))
-
+        self.command = command
         self.chosen_alg_index = ctk.IntVar()
         alg_buttons = []
         for index, alg in enumerate(self.btns):
@@ -16,7 +16,7 @@ class RadiobuttonManager:
                                              text=alg,
                                              font=(font, 30),
                                              variable=self.chosen_alg_index,
-                                             value=index,
+                                             value=index, command=self.command
                                              )
             alg_buttons.append(radiobutton)
             radiobutton.pack(side=ctk.LEFT, padx=10, pady=10)

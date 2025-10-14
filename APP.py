@@ -35,7 +35,7 @@ class APP:
 
         def load_key(location, password=b""):
             try:
-                return selected_alg.load_key(location, password=password,
+                return Global().selected_alg.load_key(location, password=password,
                                              func=lambda msg, key: AESWrapper.decrypt(
                                                  AESWrapper.generate_key(password=password, salt=key), msg))
             except Exception as e:
@@ -44,30 +44,83 @@ class APP:
             return None
 
         # -------------- Algorithm choosing widgets -------------- #
+        buttons = []
         selector_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
         selector_frame.pack()
         algs_titles = [alg.name for alg in Global().algorithms]
-        algs_selector = RadiobuttonManager(selector_frame, algs_titles)
+        Global().selected_alg = Global().algorithms[0]
+
+        def show_btn_wrapper():
+            Global().selected_alg = Global().algorithms[algs_selector.chosen_alg_index.get()]
+            if file_locator.path:
+                show_buttons()
+
+        algs_selector = RadiobuttonManager(selector_frame, algs_titles, command=show_btn_wrapper)
         algs_selector.pack()
 
-        selected_alg = Global().algorithms[algs_selector.chosen_alg_index.get()]
+        Global().selected_alg = Global().algorithms[algs_selector.chosen_alg_index.get()]
 
         # ------------- Select keyfile ------------------ #
-        buttons = []
 
         def show_buttons():
             for button in buttons:
+                button.pack_forget()
+            buttons.clear()
+            if Algorithm.ENCRYPTION in Global().selected_alg.implements:
+                encrypt_button = ctk.CTkRadioButton(buttons_frame,
+                                                    text="Encrypt",
+                                                    font=(FONT, 30),
+                                                    variable=func_var,
+                                                    value=1,
+
+                                                    command=show_encrypt_frame
+                                                    )
+                buttons.append(encrypt_button)
+            if Algorithm.DECRYPTION in Global().selected_alg.implements:
+                decrypt_button = ctk.CTkRadioButton(buttons_frame,
+                                                    text="Decrypt",
+                                                    font=(FONT, 30),
+                                                    variable=func_var,
+                                                    value=2,
+
+                                                    command=show_decrypt_frame
+                                                    )
+                buttons.append(decrypt_button)
+            if Algorithm.SIGNATURE in Global().selected_alg.implements:
+                sig_button = ctk.CTkRadioButton(buttons_frame,
+                                                text="Signature",
+                                                font=(FONT, 30),
+                                                variable=func_var,
+                                                value=3,
+
+                                                command=show_signature_frame
+                                                )
+                buttons.append(sig_button)
+            if Algorithm.VERIFICATION in Global().selected_alg.implements:
+                ver_button = ctk.CTkRadioButton(buttons_frame,
+                                                text="Verify",
+                                                font=(FONT, 30),
+                                                variable=func_var,
+                                                value=4,
+                                                command=show_verify_frame
+                                                )
+                buttons.append(ver_button)
+            for i, button in enumerate(buttons):
                 button.pack(side=tk.LEFT, padx=20)
 
         def hide_buttons():
             for button in buttons:
                 button.pack_forget()
+            buttons.clear()
             show_key_gen_frame()
             func_var.set(0)
 
         file_locator = FileLocator(self.root, on_path_found=show_buttons, on_path_not_found=hide_buttons,
                                    text="Select key file")
         file_locator.pack()
+
+        Global().set_root(self.root)
+        Global().init_password_field()
 
         # ------------- Function choosing --------------- #
 
@@ -103,7 +156,7 @@ class APP:
             hide_widgets()
             verify_frame.pack(expand=True, fill="both")
 
-        if Algorithm.KEY_GENERATION in selected_alg.implements:
+        if Algorithm.KEY_GENERATION in Global().selected_alg.implements:
             key_gen_button = ctk.CTkRadioButton(buttons_frame,
                                                 text="Generate Key",
                                                 font=(FONT, 30),
@@ -112,45 +165,7 @@ class APP:
                                                 command=show_key_gen_frame
                                                 )
             key_gen_button.pack(side=tk.LEFT, padx=20)
-        if Algorithm.ENCRYPTION in selected_alg.implements:
-            encrypt_button = ctk.CTkRadioButton(buttons_frame,
-                                                text="Encrypt",
-                                                font=(FONT, 30),
-                                                variable=func_var,
-                                                value=1,
 
-                                                command=show_encrypt_frame
-                                                )
-            buttons.append(encrypt_button)
-        if Algorithm.DECRYPTION in selected_alg.implements:
-            decrypt_button = ctk.CTkRadioButton(buttons_frame,
-                                                text="Decrypt",
-                                                font=(FONT, 30),
-                                                variable=func_var,
-                                                value=2,
-
-                                                command=show_decrypt_frame
-                                                )
-            buttons.append(decrypt_button)
-        if Algorithm.SIGNATURE in selected_alg.implements:
-            sig_button = ctk.CTkRadioButton(buttons_frame,
-                                            text="Signature",
-                                            font=(FONT, 30),
-                                            variable=func_var,
-                                            value=3,
-
-                                            command=show_signature_frame
-                                            )
-            buttons.append(sig_button)
-        if Algorithm.VERIFICATION in selected_alg.implements:
-            ver_button = ctk.CTkRadioButton(buttons_frame,
-                                            text="Verify",
-                                            font=(FONT, 30),
-                                            variable=func_var,
-                                            value=4,
-                                            command=show_verify_frame
-                                            )
-            buttons.append(ver_button)
         key_gen_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
         encrypt_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
         decrypt_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
@@ -166,16 +181,16 @@ class APP:
 
         def gen_keys_thread_task():
             global priv, pub
-            priv, pub = selected_alg.generate_key(int(key_size.get()))
+            priv, pub = Global().selected_alg.generate_key(int(key_size.get()))
             priv_loc = os.path.join(dirSelector.path, "priv.clavis")
             pub_loc = os.path.join(dirSelector.path, "pub.clavis")
 
             password = password_entry.get_value()
 
-            selected_alg.export(priv, priv_loc, password.encode('utf-8'), lambda msg, key: AESWrapper.encrypt(
+            Global().selected_alg.export(priv, priv_loc, password.encode('utf-8'), lambda msg, key: AESWrapper.encrypt(
                 AESWrapper.generate_key(password=password, salt=key), msg))
 
-            selected_alg.export(pub, pub_loc, b"", lambda msg, key: AESWrapper.encrypt(
+            Global().selected_alg.export(pub, pub_loc, b"", lambda msg, key: AESWrapper.encrypt(
                 AESWrapper.generate_key(password=b"", salt=key), msg))
 
             generate_button.configure(state="normal")
@@ -240,8 +255,6 @@ class APP:
                 # ------------------ if not from file is selected ----------------- #
                 class NotFromFileClass:
                     def __init__(self, not_from_file_frame):
-                        self.password_entry = EntryBox(not_from_file_frame, "Key password: ")
-                        self.password_entry.pack()
 
                         def paste_to_msg_box():
                             try:
@@ -259,11 +272,11 @@ class APP:
                         self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
 
                         def encrypt_data():
-                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                             if key is None:
                                 return ""
                             data = self.msg_entry.get_value().encode("utf-8")
-                            cipher = selected_alg.Encrypt(data, key, b"")
+                            cipher = Global().selected_alg.Encrypt(data, key, b"")
                             self.output_box.box.configure(state="normal")
                             self.output_box.box.delete("0.0", "end")
                             self.output_box.box.insert("0.0", cipher)
@@ -301,8 +314,6 @@ class APP:
                 class FromFileClass:
 
                     def __init__(self, from_file_frame):
-                        self.password_entry = EntryBox(from_file_frame, "Key password: ")
-                        self.password_entry.pack()
 
                         self.from_file_asker = FileLocator(from_file_frame, text="File to encrypt",
                                                            on_path_not_found=lambda: self.encrypt_btn.configure(
@@ -312,12 +323,12 @@ class APP:
                         self.from_file_asker.pack()
 
                         def encrypt_data():
-                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                             if key is None:
                                 return ""
                             with open(self.from_file_asker.path, "rb") as f:
                                 data = f.read()
-                            cipher = selected_alg.Encrypt(data, key, b"")
+                            cipher = Global().selected_alg.Encrypt(data, key, b"")
                             self.output_box.box.configure(state="normal")
                             self.output_box.box.delete("0.0", "end")
                             self.output_box.box.insert("0.0", cipher)
@@ -380,8 +391,6 @@ class APP:
             class FromFileNotSelected:
                 def __init__(self, not_from_file_frame):
 
-                    self.password_entry = EntryBox(not_from_file_frame, "Password: ")
-                    self.password_entry.pack()
 
                     def paste_to_msg_box():
                         try:
@@ -399,7 +408,7 @@ class APP:
                     self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
 
                     def decrypt_data():
-                        key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                        key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                         if key is None:
                             return ""
                         data = self.msg_entry.get_value()
@@ -407,7 +416,7 @@ class APP:
                             messagebox.showinfo(title="Error", message="The selected key is public! can not decrypt!")
                             return ""
                         try:
-                            msg = selected_alg.Decrypt(data, key, b"")
+                            msg = Global().selected_alg.Decrypt(data, key, b"")
                         except Exception as e:
                             messagebox.showinfo("Error!", "Can not decrypt!")
                             return ""
@@ -445,8 +454,7 @@ class APP:
             class FromFileSelected:
 
                 def __init__(self, from_file_frame):
-                    self.password_entry = EntryBox(from_file_frame, "Key password: ")
-                    self.password_entry.pack()
+
 
                     self.from_file_asker = FileLocator(from_file_frame, text="File to Decrypt",
                                                        on_path_not_found=lambda: self.decrypt_btn.configure(
@@ -455,12 +463,12 @@ class APP:
                     self.from_file_asker.pack()
 
                     def decrypt_data():
-                        key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                        key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                         if key is None:
                             return ""
                         with open(self.from_file_asker.path, "rb") as f:
                             data = f.read()
-                        cipher = selected_alg.Decrypt(data, key, b"")
+                        cipher = Global().selected_alg.Decrypt(data, key, b"")
                         self.output_box.box.configure(state="normal")
                         self.output_box.box.delete("0.0", "end")
                         self.output_box.box.insert("0.0", cipher)
@@ -516,8 +524,6 @@ class APP:
                 # ------------------ if not from file is selected ----------------- #
                 class NotFromFileClass:
                     def __init__(self, not_from_file_frame):
-                        self.password_entry = EntryBox(not_from_file_frame, "Key password: ")
-                        self.password_entry.pack()
 
                         def paste_to_msg_box():
                             try:
@@ -535,14 +541,14 @@ class APP:
                         self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
 
                         def sign_data():
-                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                             if key is None:
                                 return ""
                             data = self.msg_entry.get_value().encode("utf-8")
                             if not key.has_private:
                                 messagebox.showinfo("Key is public", "Key is public therefore we can not sign")
                                 return ""
-                            signature = selected_alg.Sign(data, key)
+                            signature = Global().selected_alg.Sign(data, key)
                             self.output_box.box.configure(state="normal")
                             self.output_box.box.delete("0.0", "end")
                             self.output_box.box.insert("0.0", signature)
@@ -580,8 +586,6 @@ class APP:
                 class FromFileClass:
 
                     def __init__(self, from_file_frame):
-                        self.password_entry = EntryBox(from_file_frame, "Key password: ")
-                        self.password_entry.pack()
 
                         self.from_file_asker = FileLocator(from_file_frame, text="File to sign",
                                                            on_path_not_found=lambda: self.sign_btn.configure(
@@ -591,12 +595,12 @@ class APP:
                         self.from_file_asker.pack()
 
                         def sign_data():
-                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                             if key is None:
                                 return ""
                             with open(self.from_file_asker.path, "rb") as f:
                                 data = f.read()
-                            signature = selected_alg.Sign(data, key)
+                            signature = Global().selected_alg.Sign(data, key)
                             self.output_box.box.configure(state="normal")
                             self.output_box.box.delete("0.0", "end")
                             self.output_box.box.insert("0.0", signature)
@@ -655,8 +659,6 @@ class APP:
                 # ------------------ if not from file is selected ----------------- #
                 class NotFromFileClass:
                     def __init__(self, not_from_file_frame):
-                        self.password_entry = EntryBox(not_from_file_frame, "Key password: ")
-                        self.password_entry.pack()
 
                         def paste_to_msg_box():
                             try:
@@ -674,11 +676,11 @@ class APP:
                         self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
 
                         def verify_data():
-                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                             if key is None:
                                 return ""
                             data = self.msg_entry.get_value().encode("utf-8")
-                            verification = selected_alg.Verify(data, key)
+                            verification = Global().selected_alg.Verify(data, key)
                             self.output_box.box.configure(state="normal")
                             self.output_box.box.delete("0.0", "end")
                             if verification:
@@ -724,12 +726,12 @@ class APP:
                         self.from_file_asker.pack()
 
                         def verify_data():
-                            key = load_key(file_locator.path, self.password_entry.get_value().encode("utf-8"))
+                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                             if key is None:
                                 return ""
                             with open(self.from_file_asker.path, "r") as f:
                                 data = f.read()
-                            verification = selected_alg.Verify(data, key)
+                            verification = Global().selected_alg.Verify(data, key)
                             self.output_box.box.configure(state="normal")
                             self.output_box.box.delete("0.0", "end")
                             if verification:
