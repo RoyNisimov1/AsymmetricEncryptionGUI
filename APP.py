@@ -175,12 +175,10 @@ class APP:
         # ------------- key gen frame ------------------ #
 
         show_key_gen_frame()
-        priv, pub = None, None
 
         generate_label = ctk.CTkLabel(key_gen_frame, text="", font=Global().font)
 
         def gen_keys_thread_task():
-            global priv, pub
             priv, pub = Global().selected_alg.generate_key(int(key_size.get()))
             priv_loc = os.path.join(dirSelector.path, "priv.clavis")
             pub_loc = os.path.join(dirSelector.path, "pub.clavis")
@@ -200,7 +198,6 @@ class APP:
             self.root.after(1000, lambda: generate_label.configure(text=""))
 
         def generate_keys():
-            global priv, pub
             key_gen_thread = threading.Thread(daemon=True, target=gen_keys_thread_task)
             generate_label.configure(text="Generating keys")
             generate_button.configure(state="disabled")
