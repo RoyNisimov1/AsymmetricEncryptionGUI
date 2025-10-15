@@ -1,5 +1,7 @@
 import customtkinter as ctk
 
+from Global import Global
+
 
 class RadiobuttonManager:
 
@@ -13,8 +15,7 @@ class RadiobuttonManager:
         alg_buttons = []
         for index, alg in enumerate(self.btns):
             radiobutton = ctk.CTkRadioButton(self.frame,
-                                             text=alg,
-                                             font=(font, 30),
+                                             text=alg, font=Global().font,
                                              variable=self.chosen_alg_index,
                                              value=index, command=self.command
                                              )

@@ -2,6 +2,9 @@ import tkinter as tk
 from tkinter import filedialog
 import customtkinter as ctk
 
+from Global import Global
+
+
 class FileLocator:
 
     OPEN_FILE = "open-file"
@@ -20,7 +23,7 @@ class FileLocator:
 
         self.frame = ctk.CTkFrame(self.master, fg_color=("#D9D9D9", "#2B2B2B"))
 
-        self.select_button = ctk.CTkButton(self.frame, text=self.text, command=self.create_func())
+        self.select_button = ctk.CTkButton(self.frame, text=self.text, command=self.create_func(), font=Global().font)
         self.select_button.grid(row=0, column=0, padx=(10, 10))
 
         # Create a label to display the selected file path

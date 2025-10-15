@@ -69,7 +69,7 @@ class APP:
             if Algorithm.ENCRYPTION in Global().selected_alg.implements:
                 encrypt_button = ctk.CTkRadioButton(buttons_frame,
                                                     text="Encrypt",
-                                                    font=(FONT, 30),
+                                                    font=Global().font,
                                                     variable=func_var,
                                                     value=1,
 
@@ -79,7 +79,7 @@ class APP:
             if Algorithm.DECRYPTION in Global().selected_alg.implements:
                 decrypt_button = ctk.CTkRadioButton(buttons_frame,
                                                     text="Decrypt",
-                                                    font=(FONT, 30),
+                                                    font=Global().font,
                                                     variable=func_var,
                                                     value=2,
 
@@ -89,7 +89,7 @@ class APP:
             if Algorithm.SIGNATURE in Global().selected_alg.implements:
                 sig_button = ctk.CTkRadioButton(buttons_frame,
                                                 text="Signature",
-                                                font=(FONT, 30),
+                                                font=Global().font,
                                                 variable=func_var,
                                                 value=3,
 
@@ -99,7 +99,7 @@ class APP:
             if Algorithm.VERIFICATION in Global().selected_alg.implements:
                 ver_button = ctk.CTkRadioButton(buttons_frame,
                                                 text="Verify",
-                                                font=(FONT, 30),
+                                                font=Global().font,
                                                 variable=func_var,
                                                 value=4,
                                                 command=show_verify_frame
@@ -159,7 +159,7 @@ class APP:
         if Algorithm.KEY_GENERATION in Global().selected_alg.implements:
             key_gen_button = ctk.CTkRadioButton(buttons_frame,
                                                 text="Generate Key",
-                                                font=(FONT, 30),
+                                                font=Global().font,
                                                 variable=func_var,
                                                 value=0,
                                                 command=show_key_gen_frame
@@ -177,7 +177,7 @@ class APP:
         show_key_gen_frame()
         priv, pub = None, None
 
-        generate_label = ctk.CTkLabel(key_gen_frame, text="")
+        generate_label = ctk.CTkLabel(key_gen_frame, text="", font=Global().font)
 
         def gen_keys_thread_task():
             global priv, pub
@@ -208,7 +208,7 @@ class APP:
             password_entry.disable()
             key_gen_thread.start()
 
-        ctk.CTkLabel(key_gen_frame, text="Key Size: ").pack()
+        ctk.CTkLabel(key_gen_frame, text="Key Size: ", font=Global().font).pack()
 
         key_size = ctk.StringVar()
         key_size.set("1024")
@@ -227,7 +227,7 @@ class APP:
                                   on_path_not_found=lambda: generate_button.configure(state="disabled"))
         dirSelector.pack()
 
-        generate_button = ctk.CTkButton(key_gen_frame, command=generate_keys, text="Generate", state="disabled")
+        generate_button = ctk.CTkButton(key_gen_frame, command=generate_keys, text="Generate", state="disabled", font=Global().font)
         generate_button.pack(pady=25)
 
         generate_label.pack()
@@ -265,7 +265,7 @@ class APP:
                                 messagebox.showinfo(title="Warning", message="Empty clipboard")
                                 return
 
-                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box)
+                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box, font=Global().font)
                         self.paste_btn.pack(anchor="e")
 
                         self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
@@ -291,7 +291,7 @@ class APP:
 
                         self.output_box.pack(fill=tk.X, expand=True, anchor="w")
 
-                        self.encrypt_btn = ctk.CTkButton(not_from_file_frame, text="Encrypt", command=encrypt_data)
+                        self.encrypt_btn = ctk.CTkButton(not_from_file_frame, text="Encrypt", command=encrypt_data, font=Global().font)
                         self.encrypt_btn.pack(pady=(10, 10))
 
                         self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE,
@@ -304,7 +304,7 @@ class APP:
                             not_from_file_frame.clipboard_append(text_to_copy)
 
                         self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard)
+                                                      command=copy_output_to_clipboard, font=Global().font)
                         self.copy_btn.pack(anchor="e", padx=(10, 20))
 
                 NotFromFileClass(self.not_from_file_frame)
@@ -343,7 +343,7 @@ class APP:
 
                         self.output_box.pack(fill=tk.X, expand=True, anchor="w")
 
-                        self.encrypt_btn = ctk.CTkButton(from_file_frame, text="Encrypt", command=encrypt_data)
+                        self.encrypt_btn = ctk.CTkButton(from_file_frame, text="Encrypt", command=encrypt_data, font=Global().font)
                         self.encrypt_btn.configure(state="disabled")
                         self.encrypt_btn.pack(pady=(10, 10))
 
@@ -357,7 +357,7 @@ class APP:
                             from_file_frame.clipboard_append(text_to_copy)
 
                         self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard)
+                                                      command=copy_output_to_clipboard, font=Global().font)
                         self.copy_btn.pack(anchor="e", padx=(10, 20))
 
                 FromFileClass(self.from_file_frame)
@@ -401,7 +401,7 @@ class APP:
                             messagebox.showinfo(title="Warning", message="Empty clipboard")
                             return
 
-                    self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box)
+                    self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box, font=Global().font)
                     self.paste_btn.pack(anchor="e")
 
                     self.msg_entry = TextBoxArea(not_from_file_frame, "Ciphertext: ")
@@ -435,7 +435,7 @@ class APP:
 
                     self.output_box.pack(fill=tk.X, expand=True, anchor="w")
 
-                    self.decrypt_btn = ctk.CTkButton(not_from_file_frame, text="Decrypt", command=decrypt_data)
+                    self.decrypt_btn = ctk.CTkButton(not_from_file_frame, text="Decrypt", command=decrypt_data, font=Global().font)
                     self.decrypt_btn.pack(pady=(10, 10))
 
                     self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE,
@@ -448,7 +448,7 @@ class APP:
                         not_from_file_frame.clipboard_append(text_to_copy)
 
                     self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                  command=copy_output_to_clipboard)
+                                                  command=copy_output_to_clipboard, font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             class FromFileSelected:
@@ -483,7 +483,7 @@ class APP:
 
                     self.output_box.pack(fill=tk.X, expand=True, anchor="w")
 
-                    self.decrypt_btn = ctk.CTkButton(from_file_frame, text="Decrypt", command=decrypt_data)
+                    self.decrypt_btn = ctk.CTkButton(from_file_frame, text="Decrypt", command=decrypt_data, font=Global().font)
                     self.decrypt_btn.configure(state="disabled")
                     self.decrypt_btn.pack(pady=(10, 10))
 
@@ -496,7 +496,7 @@ class APP:
                         from_file_frame.clipboard_clear()
                         from_file_frame.clipboard_append(text_to_copy)
 
-                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output", command=copy_output_to_clipboard)
+                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output", command=copy_output_to_clipboard, font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
         DecryptFrame()
@@ -534,7 +534,7 @@ class APP:
                                 messagebox.showinfo(title="Warning", message="Empty clipboard")
                                 return
 
-                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box)
+                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box, font=Global().font)
                         self.paste_btn.pack(anchor="e")
 
                         self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
@@ -563,7 +563,7 @@ class APP:
 
                         self.output_box.pack(fill=tk.X, expand=True, anchor="w")
 
-                        self.sign_btn = ctk.CTkButton(not_from_file_frame, text="Sign", command=sign_data)
+                        self.sign_btn = ctk.CTkButton(not_from_file_frame, text="Sign", command=sign_data, font=Global().font)
                         self.sign_btn.pack(pady=(10, 10))
 
                         self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE,
@@ -576,7 +576,7 @@ class APP:
                             not_from_file_frame.clipboard_append(text_to_copy)
 
                         self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard)
+                                                      command=copy_output_to_clipboard, font=Global().font)
                         self.copy_btn.pack(anchor="e", padx=(10, 20))
 
                 NotFromFileClass(self.not_from_file_frame)
@@ -615,7 +615,7 @@ class APP:
 
                         self.output_box.pack(fill=tk.X, expand=True, anchor="w")
 
-                        self.sign_btn = ctk.CTkButton(from_file_frame, text="Sign", command=sign_data)
+                        self.sign_btn = ctk.CTkButton(from_file_frame, text="Sign", command=sign_data, font=Global().font)
                         self.sign_btn.configure(state="disabled")
                         self.sign_btn.pack(pady=(10, 10))
 
@@ -629,7 +629,7 @@ class APP:
                             from_file_frame.clipboard_append(text_to_copy)
 
                         self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard)
+                                                      command=copy_output_to_clipboard, font=Global().font)
                         self.copy_btn.pack(anchor="e", padx=(10, 20))
 
                 FromFileClass(self.from_file_frame)
@@ -669,10 +669,10 @@ class APP:
                                 messagebox.showinfo(title="Warning", message="Empty clipboard")
                                 return
 
-                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box)
+                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box, font=Global().font)
                         self.paste_btn.pack(anchor="e")
 
-                        self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
+                        self.msg_entry = TextBoxArea(not_from_file_frame, "Signature:")
                         self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
 
                         def verify_data():
@@ -684,7 +684,7 @@ class APP:
                             self.output_box.box.configure(state="normal")
                             self.output_box.box.delete("0.0", "end")
                             if verification:
-                                self.output_box.box.insert("0.0", "Verified successful!")
+                                self.output_box.box.insert("0.0", "Verified successfully!")
                             else:
                                 self.output_box.box.insert("0.0", "Verification unsuccessful, signature is wrong!")
 
@@ -696,7 +696,7 @@ class APP:
 
                         self.output_box.pack(fill=tk.X, expand=True, anchor="w")
 
-                        self.verify_btn = ctk.CTkButton(not_from_file_frame, text="Verify", command=verify_data)
+                        self.verify_btn = ctk.CTkButton(not_from_file_frame, text="Verify", command=verify_data, font=Global().font)
                         self.verify_btn.pack(pady=(10, 10))
 
                         def copy_output_to_clipboard():
@@ -705,7 +705,7 @@ class APP:
                             not_from_file_frame.clipboard_append(text_to_copy)
 
                         self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard)
+                                                      command=copy_output_to_clipboard, font=Global().font)
                         self.copy_btn.pack(anchor="e", padx=(10, 20))
 
                 NotFromFileClass(self.not_from_file_frame)
@@ -735,7 +735,7 @@ class APP:
                             self.output_box.box.configure(state="normal")
                             self.output_box.box.delete("0.0", "end")
                             if verification:
-                                self.output_box.box.insert("0.0", "Verified successful!")
+                                self.output_box.box.insert("0.0", "Verified successfully!")
                             else:
                                 self.output_box.box.insert("0.0", "Verification unsuccessful, signature is wrong!")
 
@@ -747,7 +747,7 @@ class APP:
 
                         self.output_box.pack(fill=tk.X, expand=True, anchor="w")
 
-                        self.verify_btn = ctk.CTkButton(from_file_frame, text="Verify", command=verify_data)
+                        self.verify_btn = ctk.CTkButton(from_file_frame, text="Verify", command=verify_data, font=Global().font)
                         self.verify_btn.configure(state="disabled")
                         self.verify_btn.pack(pady=(10, 10))
 
@@ -757,7 +757,7 @@ class APP:
                             from_file_frame.clipboard_append(text_to_copy)
 
                         self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard)
+                                                      command=copy_output_to_clipboard, font=Global().font)
                         self.copy_btn.pack(anchor="e", padx=(10, 20))
 
                 FromFileClass(self.from_file_frame)
