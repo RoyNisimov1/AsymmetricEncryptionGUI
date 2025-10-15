@@ -3,6 +3,7 @@ from Algorithms.Algorithm import Algorithm
 from Algorithms.RSAAlg import RSAAlg
 from Algorithms.ElGamalAlg import ElGamalAlg
 from Algorithms.DSAAlg import DSAAlg
+from Algorithms.ECCAlg import ECCAlg
 
 
 class Global:
@@ -15,7 +16,7 @@ class Global:
         return cls._instance
 
     def init_instance(self):
-        self.algorithms: list[Algorithm] = [RSAAlg(), ElGamalAlg(), DSAAlg()]
+        self.algorithms: list[Algorithm] = [RSAAlg(), ElGamalAlg(), DSAAlg(), ECCAlg()]
         self.root = None
         self.password_field = None
         self.selected_alg = self.algorithms[0]

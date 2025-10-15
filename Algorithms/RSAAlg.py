@@ -56,7 +56,8 @@ class RSAAlg(Algorithm):
         except Exception:
             return False
 
-
+    def get_has_private(self, key: RSAKey) -> bool:
+        return key.has_private
 
 
 

@@ -38,3 +38,6 @@ class DSAAlg(Algorithm):
 
     def load_key(self, location: str, password=b"", func=lambda msg, k: msg):
         return DSAKey.load(file_name=location, pwd=password, dec_func=func)
+
+    def get_has_private(self, key: DSAKey) -> bool:
+        return key.has_private

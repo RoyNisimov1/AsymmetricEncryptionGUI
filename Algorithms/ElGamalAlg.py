@@ -72,3 +72,5 @@ class ElGamalAlg(Algorithm):
     def load_key(self, location: str, password=b"", func=lambda msg, k: msg):
         return ElGamalKey.load(file_name=location, pwd=password, dec_func=func)
 
+    def get_has_private(self, key: ElGamalKey) -> bool:
+        return key.has_private

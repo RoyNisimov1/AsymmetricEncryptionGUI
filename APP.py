@@ -412,7 +412,7 @@ class APP:
                         if key is None:
                             return ""
                         data = self.msg_entry.get_value()
-                        if not key.has_private:
+                        if not Global().selected_alg.get_has_private(key):
                             messagebox.showinfo(title="Error", message="The selected key is public! can not decrypt!")
                             return ""
                         try:
@@ -545,7 +545,7 @@ class APP:
                             if key is None:
                                 return ""
                             data = self.msg_entry.get_value().encode("utf-8")
-                            if not key.has_private:
+                            if not Global().selected_alg.get_has_private(key):
                                 messagebox.showinfo("Key is public", "Key is public therefore we can not sign")
                                 return ""
                             signature = Global().selected_alg.Sign(data, key)

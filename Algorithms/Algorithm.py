@@ -35,6 +35,9 @@ class Algorithm:
     def Verify(self, sig: bytes, key: object):
         raise AlgorithmException("Current algorithm doesn't support verification")
 
+    def get_has_private(self, key: object) -> bool:
+        raise AlgorithmException("Current algorithm doesn't support private keys")
+
     def load_key(self, location: str, password=b"", func=lambda msg, k: msg):
         raise AlgorithmException("Current algorithm doesn't support loading data")
 
