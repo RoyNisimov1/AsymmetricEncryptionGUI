@@ -33,3 +33,8 @@ class Global:
     def init_password_field(self):
         self.password_field = EntryBox(self.root, "Key password:", font=self.font)
         self.password_field.pack()
+
+    def copy_to_clip_board(self, text):
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+

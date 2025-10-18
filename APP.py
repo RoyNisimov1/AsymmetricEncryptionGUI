@@ -40,7 +40,7 @@ class APP:
                                                  AESWrapper.generate_key(password=password, salt=key), msg))
             except Exception as e:
                 messagebox.showinfo("Error!",
-                                    f"Exception '{e}' occurred. Can not load key! Check the password field or the algorithem type")
+                                    f"Exception '{e}' occurred. Can not load key! Check the password field or the algorithm type")
             return None
 
         # -------------- Algorithm choosing widgets -------------- #
@@ -283,13 +283,8 @@ class APP:
                                                 text="Select save file location")
                     self.save_loc.pack()
 
-                    def copy_output_to_clipboard():
-                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                        not_from_file_frame.clipboard_clear()
-                        not_from_file_frame.clipboard_append(text_to_copy)
-
                     self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                  command=copy_output_to_clipboard, font=Global().font)
+                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             class FromFileClass:
@@ -338,13 +333,9 @@ class APP:
                                                 text="Select save file location")
                     self.save_loc.pack()
 
-                    def copy_output_to_clipboard():
-                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                        from_file_frame.clipboard_clear()
-                        from_file_frame.clipboard_append(text_to_copy)
 
                     self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                  command=copy_output_to_clipboard, font=Global().font)
+                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             def __init__(self):
@@ -426,12 +417,9 @@ class APP:
                                                 text="Select save file location")
                     self.save_loc.pack()
 
-                    def copy_output_to_clipboard():
-                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                        from_file_frame.clipboard_clear()
-                        from_file_frame.clipboard_append(text_to_copy)
 
-                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output", command=copy_output_to_clipboard, font=Global().font)
+
+                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output", command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             class FromFileNotSelected:
@@ -496,13 +484,9 @@ class APP:
                                                 text="Select save file location")
                     self.save_loc.pack()
 
-                    def copy_output_to_clipboard():
-                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                        not_from_file_frame.clipboard_clear()
-                        not_from_file_frame.clipboard_append(text_to_copy)
 
                     self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                  command=copy_output_to_clipboard, font=Global().font)
+                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
 
@@ -526,7 +510,6 @@ class APP:
                 else:
                     self.from_file_frame.pack_forget()
                     self.not_from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
-
 
         DecryptFrame()
 
@@ -590,13 +573,9 @@ class APP:
                                                 text="Select save file location")
                     self.save_loc.pack()
 
-                    def copy_output_to_clipboard():
-                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                        not_from_file_frame.clipboard_clear()
-                        not_from_file_frame.clipboard_append(text_to_copy)
 
                     self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                  command=copy_output_to_clipboard, font=Global().font)
+                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             class FromFileClass:
@@ -645,13 +624,8 @@ class APP:
                                                 text="Select save file location")
                     self.save_loc.pack()
 
-                    def copy_output_to_clipboard():
-                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                        from_file_frame.clipboard_clear()
-                        from_file_frame.clipboard_append(text_to_copy)
-
                     self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                  command=copy_output_to_clipboard, font=Global().font)
+                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
 
@@ -730,13 +704,8 @@ class APP:
                                                     font=Global().font)
                     self.verify_btn.pack(pady=(10, 10))
 
-                    def copy_output_to_clipboard():
-                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                        not_from_file_frame.clipboard_clear()
-                        not_from_file_frame.clipboard_append(text_to_copy)
-
                     self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                  command=copy_output_to_clipboard, font=Global().font)
+                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             class FromFileClass:
@@ -778,13 +747,9 @@ class APP:
                     self.verify_btn.configure(state="disabled")
                     self.verify_btn.pack(pady=(10, 10))
 
-                    def copy_output_to_clipboard():
-                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                        from_file_frame.clipboard_clear()
-                        from_file_frame.clipboard_append(text_to_copy)
 
                     self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                  command=copy_output_to_clipboard, font=Global().font)
+                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             def __init__(self):
