@@ -17,7 +17,7 @@ class APP:
     frame_color = ("#D9D9D9", "#2B2B2B")
 
     def __init__(self):
-        FONT = "Ariel"
+
 
         # -------------- Initialise window --------------- #
         ctk.set_appearance_mode("dark")
@@ -274,10 +274,16 @@ class APP:
                                 return ""
                             data = self.msg_entry.get_value().encode("utf-8")
                             cipher = Global().selected_alg.Encrypt(data, key, b"")
-                            self.output_box.box.configure(state="normal")
-                            self.output_box.box.delete("0.0", "end")
-                            self.output_box.box.insert("0.0", cipher)
-                            self.output_box.box.configure(state="disabled")
+                            if len(cipher) < 1000:
+                                self.output_box.box.configure(state="normal")
+                                self.output_box.box.delete("0.0", "end")
+                                self.output_box.box.insert("0.0", cipher)
+                                self.output_box.box.configure(state="disabled")
+                            else:
+                                self.output_box.box.configure(state="normal")
+                                self.output_box.box.delete("0.0", "end")
+                                self.output_box.box.insert("0.0", "Cipher text is too large to display, please save into a file")
+                                self.output_box.box.configure(state="disabled")
                             if self.save_loc.path != "":
                                 with open(self.save_loc.path, "w") as f:
                                     f.write(cipher)
@@ -327,9 +333,14 @@ class APP:
                                 data = f.read()
                             cipher = Global().selected_alg.Encrypt(data, key, b"")
                             self.output_box.box.configure(state="normal")
-                            self.output_box.box.delete("0.0", "end")
-                            self.output_box.box.insert("0.0", cipher)
-                            self.output_box.box.configure(state="disabled")
+                            if len(cipher) < 1000:
+                                self.output_box.box.delete("0.0", "end")
+                                self.output_box.box.insert("0.0", cipher)
+                                self.output_box.box.configure(state="disabled")
+                            else:
+                                self.output_box.box.delete("0.0", "end")
+                                self.output_box.box.insert("0.0", "Cipher is too big! Save into a file please!")
+                                self.output_box.box.configure(state="disabled")
                             if self.save_loc.path != "":
                                 with open(self.save_loc.path, "w") as f:
                                     f.write(cipher)
@@ -409,6 +420,7 @@ class APP:
                         if key is None:
                             return ""
                         data = self.msg_entry.get_value()
+                        msg = b""
                         if not Global().selected_alg.get_has_private(key):
                             messagebox.showinfo(title="Error", message="The selected key is public! can not decrypt!")
                             return ""
@@ -417,6 +429,13 @@ class APP:
                         except Exception as e:
                             messagebox.showinfo("Error!", "Can not decrypt!")
                             return ""
+
+                        try:
+                            msg = msg.decode("utf-8")
+                            if len(msg) > 1000:
+                                raise Exception()
+                        except Exception:
+                            msg = "Message is too long or is bytes, please save into a file"
 
                         self.output_box.box.configure(state="normal")
                         self.output_box.box.delete("0.0", "end")
@@ -466,12 +485,19 @@ class APP:
                         with open(self.from_file_asker.path, "rb") as f:
                             data = f.read()
                         cipher = Global().selected_alg.Decrypt(data, key, b"")
+                        msg = cipher
+                        try:
+                            msg = msg.decode("utf-8")
+                            if len(msg) > 1000:
+                                raise Exception()
+                        except Exception:
+                            msg = "Message is too long or is bytes, please save into a file"
                         self.output_box.box.configure(state="normal")
                         self.output_box.box.delete("0.0", "end")
-                        self.output_box.box.insert("0.0", cipher)
+                        self.output_box.box.insert("0.0", msg)
                         self.output_box.box.configure(state="disabled")
                         if self.save_loc.path != "":
-                            with open(self.save_loc.path, "w") as f:
+                            with open(self.save_loc.path, "wb") as f:
                                 f.write(cipher)
                         return cipher
 
@@ -546,10 +572,17 @@ class APP:
                                 messagebox.showinfo("Key is public", "Key is public therefore we can not sign")
                                 return ""
                             signature = Global().selected_alg.Sign(data, key)
-                            self.output_box.box.configure(state="normal")
-                            self.output_box.box.delete("0.0", "end")
-                            self.output_box.box.insert("0.0", signature)
-                            self.output_box.box.configure(state="disabled")
+                            if len(signature) < 1000:
+                                self.output_box.box.configure(state="normal")
+                                self.output_box.box.delete("0.0", "end")
+                                self.output_box.box.insert("0.0", signature)
+                                self.output_box.box.configure(state="disabled")
+                            else:
+                                self.output_box.box.configure(state="normal")
+                                self.output_box.box.delete("0.0", "end")
+                                self.output_box.box.insert("0.0",
+                                                           "Signature is too big to show' please save into a file!")
+                                self.output_box.box.configure(state="disabled")
                             if self.save_loc.path != "":
                                 with open(self.save_loc.path, "w") as f:
                                     f.write(signature)
@@ -598,10 +631,16 @@ class APP:
                             with open(self.from_file_asker.path, "rb") as f:
                                 data = f.read()
                             signature = Global().selected_alg.Sign(data, key)
-                            self.output_box.box.configure(state="normal")
-                            self.output_box.box.delete("0.0", "end")
-                            self.output_box.box.insert("0.0", signature)
-                            self.output_box.box.configure(state="disabled")
+                            if len(signature) < 1000:
+                                self.output_box.box.configure(state="normal")
+                                self.output_box.box.delete("0.0", "end")
+                                self.output_box.box.insert("0.0", signature)
+                                self.output_box.box.configure(state="disabled")
+                            else:
+                                self.output_box.box.configure(state="normal")
+                                self.output_box.box.delete("0.0", "end")
+                                self.output_box.box.insert("0.0", "Signature is too big to show' please save into a file!")
+                                self.output_box.box.configure(state="disabled")
                             if self.save_loc.path != "":
                                 with open(self.save_loc.path, "w") as f:
                                     f.write(signature)
