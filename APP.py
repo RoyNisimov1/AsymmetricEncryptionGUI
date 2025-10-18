@@ -232,6 +232,121 @@ class APP:
         # ------------- encrypt gen frame ------------------ #
 
         class EncryptFrame:
+            class NotFromFileClass:
+                def __init__(self, not_from_file_frame):
+
+                    def paste_to_msg_box():
+                        try:
+                            clipboard_content = not_from_file_frame.clipboard_get()
+                            self.msg_entry.box.delete("0.0", tk.END)
+                            self.msg_entry.box.insert(tk.INSERT, clipboard_content)
+                        except tk.TclError:
+                            messagebox.showinfo(title="Warning", message="Empty clipboard")
+                            return
+
+                    self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box, font=Global().font)
+                    self.paste_btn.pack(anchor="e")
+
+                    self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
+                    self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
+
+                    def encrypt_data():
+                        key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
+                        if key is None:
+                            return ""
+                        data = self.msg_entry.get_value().encode("utf-8")
+                        cipher = Global().selected_alg.Encrypt(data, key, b"")
+                        if len(cipher) < 1000:
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0", cipher)
+                            self.output_box.box.configure(state="disabled")
+                        else:
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0", "Cipher text is too large to display, please save into a file")
+                            self.output_box.box.configure(state="disabled")
+                        if self.save_loc.path != "":
+                            with open(self.save_loc.path, "w") as f:
+                                f.write(cipher)
+                        return cipher
+
+                    self.output_box = TextBoxArea(not_from_file_frame, text="Output:")
+                    self.output_box.box.configure(state="disabled")
+
+                    self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                    self.encrypt_btn = ctk.CTkButton(not_from_file_frame, text="Encrypt", command=encrypt_data, font=Global().font)
+                    self.encrypt_btn.pack(pady=(10, 10))
+
+                    self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE,
+                                                text="Select save file location")
+                    self.save_loc.pack()
+
+                    def copy_output_to_clipboard():
+                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                        not_from_file_frame.clipboard_clear()
+                        not_from_file_frame.clipboard_append(text_to_copy)
+
+                    self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
+                                                  command=copy_output_to_clipboard, font=Global().font)
+                    self.copy_btn.pack(anchor="e", padx=(10, 20))
+
+            class FromFileClass:
+
+                def __init__(self, from_file_frame):
+
+                    self.from_file_asker = FileLocator(from_file_frame, text="File to encrypt",
+                                                       on_path_not_found=lambda: self.encrypt_btn.configure(
+                                                           state="disabled"),
+                                                       on_path_found=lambda: self.encrypt_btn.configure(
+                                                           state="normal"))
+                    self.from_file_asker.pack()
+
+                    def encrypt_data():
+                        key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
+                        if key is None:
+                            return ""
+                        with open(self.from_file_asker.path, "rb") as f:
+                            data = f.read()
+                        cipher = Global().selected_alg.Encrypt(data, key, b"")
+                        self.output_box.box.configure(state="normal")
+                        if len(cipher) < 1000:
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0", cipher)
+                            self.output_box.box.configure(state="disabled")
+                        else:
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0", "Cipher is too big! Save into a file please!")
+                            self.output_box.box.configure(state="disabled")
+                        if self.save_loc.path != "":
+                            with open(self.save_loc.path, "w") as f:
+                                f.write(cipher)
+                        return cipher
+
+                    self.output_box = TextBoxArea(from_file_frame, text="Output:")
+                    self.output_box.box.configure(state="disabled")
+
+                    self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                    self.encrypt_btn = ctk.CTkButton(from_file_frame, text="Encrypt", command=encrypt_data,
+                                                     font=Global().font)
+                    self.encrypt_btn.configure(state="disabled")
+                    self.encrypt_btn.pack(pady=(10, 10))
+
+                    self.save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE,
+                                                text="Select save file location")
+                    self.save_loc.pack()
+
+                    def copy_output_to_clipboard():
+                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                        from_file_frame.clipboard_clear()
+                        from_file_frame.clipboard_append(text_to_copy)
+
+                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
+                                                  command=copy_output_to_clipboard, font=Global().font)
+                    self.copy_btn.pack(anchor="e", padx=(10, 20))
+
             def __init__(self):
                 self.from_file_frame = ctk.CTkFrame(encrypt_frame, fg_color=APP.frame_color)
 
@@ -250,151 +365,74 @@ class APP:
                 switch_frames()
 
                 # ------------------ if not from file is selected ----------------- #
-                class NotFromFileClass:
-                    def __init__(self, not_from_file_frame):
 
-                        def paste_to_msg_box():
-                            try:
-                                clipboard_content = not_from_file_frame.clipboard_get()
-                                self.msg_entry.box.delete("0.0", tk.END)
-                                self.msg_entry.box.insert(tk.INSERT, clipboard_content)
-                            except tk.TclError:
-                                messagebox.showinfo(title="Warning", message="Empty clipboard")
-                                return
 
-                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box, font=Global().font)
-                        self.paste_btn.pack(anchor="e")
-
-                        self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
-                        self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
-
-                        def encrypt_data():
-                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
-                            if key is None:
-                                return ""
-                            data = self.msg_entry.get_value().encode("utf-8")
-                            cipher = Global().selected_alg.Encrypt(data, key, b"")
-                            if len(cipher) < 1000:
-                                self.output_box.box.configure(state="normal")
-                                self.output_box.box.delete("0.0", "end")
-                                self.output_box.box.insert("0.0", cipher)
-                                self.output_box.box.configure(state="disabled")
-                            else:
-                                self.output_box.box.configure(state="normal")
-                                self.output_box.box.delete("0.0", "end")
-                                self.output_box.box.insert("0.0", "Cipher text is too large to display, please save into a file")
-                                self.output_box.box.configure(state="disabled")
-                            if self.save_loc.path != "":
-                                with open(self.save_loc.path, "w") as f:
-                                    f.write(cipher)
-                            return cipher
-
-                        self.output_box = TextBoxArea(not_from_file_frame, text="Output:")
-                        self.output_box.box.configure(state="disabled")
-
-                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
-
-                        self.encrypt_btn = ctk.CTkButton(not_from_file_frame, text="Encrypt", command=encrypt_data, font=Global().font)
-                        self.encrypt_btn.pack(pady=(10, 10))
-
-                        self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE,
-                                                    text="Select save file location")
-                        self.save_loc.pack()
-
-                        def copy_output_to_clipboard():
-                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                            not_from_file_frame.clipboard_clear()
-                            not_from_file_frame.clipboard_append(text_to_copy)
-
-                        self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard, font=Global().font)
-                        self.copy_btn.pack(anchor="e", padx=(10, 20))
-
-                NotFromFileClass(self.not_from_file_frame)
+                EncryptFrame.NotFromFileClass(self.not_from_file_frame)
 
                 # ------------------ if from file is selected ----------------- #
 
-                class FromFileClass:
 
-                    def __init__(self, from_file_frame):
-
-                        self.from_file_asker = FileLocator(from_file_frame, text="File to encrypt",
-                                                           on_path_not_found=lambda: self.encrypt_btn.configure(
-                                                               state="disabled"),
-                                                           on_path_found=lambda: self.encrypt_btn.configure(
-                                                               state="normal"))
-                        self.from_file_asker.pack()
-
-                        def encrypt_data():
-                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
-                            if key is None:
-                                return ""
-                            with open(self.from_file_asker.path, "rb") as f:
-                                data = f.read()
-                            cipher = Global().selected_alg.Encrypt(data, key, b"")
-                            self.output_box.box.configure(state="normal")
-                            if len(cipher) < 1000:
-                                self.output_box.box.delete("0.0", "end")
-                                self.output_box.box.insert("0.0", cipher)
-                                self.output_box.box.configure(state="disabled")
-                            else:
-                                self.output_box.box.delete("0.0", "end")
-                                self.output_box.box.insert("0.0", "Cipher is too big! Save into a file please!")
-                                self.output_box.box.configure(state="disabled")
-                            if self.save_loc.path != "":
-                                with open(self.save_loc.path, "w") as f:
-                                    f.write(cipher)
-                            return cipher
-
-                        self.output_box = TextBoxArea(from_file_frame, text="Output:")
-                        self.output_box.box.configure(state="disabled")
-
-                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
-
-                        self.encrypt_btn = ctk.CTkButton(from_file_frame, text="Encrypt", command=encrypt_data, font=Global().font)
-                        self.encrypt_btn.configure(state="disabled")
-                        self.encrypt_btn.pack(pady=(10, 10))
-
-                        self.save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE,
-                                                    text="Select save file location")
-                        self.save_loc.pack()
-
-                        def copy_output_to_clipboard():
-                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                            from_file_frame.clipboard_clear()
-                            from_file_frame.clipboard_append(text_to_copy)
-
-                        self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard, font=Global().font)
-                        self.copy_btn.pack(anchor="e", padx=(10, 20))
-
-                FromFileClass(self.from_file_frame)
+                EncryptFrame.FromFileClass(self.from_file_frame)
 
         EncryptFrame()
 
         # ------------- decrypt gen frame ------------------ #
 
         class DecryptFrame:
+            class FromFileSelected:
 
-            def __init__(self):
-                self.from_file_frame = ctk.CTkFrame(decrypt_frame, fg_color=APP.frame_color)
+                def __init__(self, from_file_frame):
 
-                self.not_from_file_frame = ctk.CTkFrame(decrypt_frame, fg_color=APP.frame_color)
 
-                self.from_file_checkbox = ctk.CTkCheckBox(decrypt_frame, text="From file?", command=self.switch_frames)
-                self.from_file_checkbox.pack()
-                self.switch_frames()
+                    self.from_file_asker = FileLocator(from_file_frame, text="File to Decrypt",
+                                                       on_path_not_found=lambda: self.decrypt_btn.configure(
+                                                           state="disabled"),
+                                                       on_path_found=lambda: self.decrypt_btn.configure(state="normal"))
+                    self.from_file_asker.pack()
 
-                self.FromFileSelected(self.from_file_frame)
-                self.FromFileNotSelected(self.not_from_file_frame)
+                    def decrypt_data():
+                        key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
+                        if key is None:
+                            return ""
+                        with open(self.from_file_asker.path, "rb") as f:
+                            data = f.read()
+                        cipher = Global().selected_alg.Decrypt(data, key, b"")
+                        msg = cipher
+                        try:
+                            msg = msg.decode("utf-8")
+                            if len(msg) > 1000:
+                                raise Exception()
+                        except Exception:
+                            msg = "Message is too long or is bytes, please save into a file"
+                        self.output_box.box.configure(state="normal")
+                        self.output_box.box.delete("0.0", "end")
+                        self.output_box.box.insert("0.0", msg)
+                        self.output_box.box.configure(state="disabled")
+                        if self.save_loc.path != "":
+                            with open(self.save_loc.path, "wb") as f:
+                                f.write(cipher)
+                        return cipher
 
-            def switch_frames(self):
-                if self.from_file_checkbox.get():
-                    self.from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
-                    self.not_from_file_frame.pack_forget()
-                else:
-                    self.from_file_frame.pack_forget()
-                    self.not_from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
+                    self.output_box = TextBoxArea(from_file_frame, text="Output:")
+                    self.output_box.box.configure(state="disabled")
+
+                    self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                    self.decrypt_btn = ctk.CTkButton(from_file_frame, text="Decrypt", command=decrypt_data, font=Global().font)
+                    self.decrypt_btn.configure(state="disabled")
+                    self.decrypt_btn.pack(pady=(10, 10))
+
+                    self.save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE,
+                                                text="Select save file location")
+                    self.save_loc.pack()
+
+                    def copy_output_to_clipboard():
+                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                        from_file_frame.clipboard_clear()
+                        from_file_frame.clipboard_append(text_to_copy)
+
+                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output", command=copy_output_to_clipboard, font=Global().font)
+                    self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             class FromFileNotSelected:
                 def __init__(self, not_from_file_frame):
@@ -467,48 +505,141 @@ class APP:
                                                   command=copy_output_to_clipboard, font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
-            class FromFileSelected:
+
+
+            def __init__(self):
+                self.from_file_frame = ctk.CTkFrame(decrypt_frame, fg_color=APP.frame_color)
+
+                self.not_from_file_frame = ctk.CTkFrame(decrypt_frame, fg_color=APP.frame_color)
+
+                self.from_file_checkbox = ctk.CTkCheckBox(decrypt_frame, text="From file?", command=self.switch_frames)
+                self.from_file_checkbox.pack()
+                self.switch_frames()
+
+                self.FromFileSelected(self.from_file_frame)
+                self.FromFileNotSelected(self.not_from_file_frame)
+
+            def switch_frames(self):
+                if self.from_file_checkbox.get():
+                    self.from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
+                    self.not_from_file_frame.pack_forget()
+                else:
+                    self.from_file_frame.pack_forget()
+                    self.not_from_file_frame.pack(fill=tk.X, expand=True, anchor="n")
+
+
+        DecryptFrame()
+
+        # ------------- Sign gen frame ------------------ #
+
+        class SignatureFrame:
+            class NotFromFileClass:
+                def __init__(self, not_from_file_frame):
+
+                    def paste_to_msg_box():
+                        try:
+                            clipboard_content = not_from_file_frame.clipboard_get()
+                            self.msg_entry.box.delete("0.0", tk.END)
+                            self.msg_entry.box.insert(tk.INSERT, clipboard_content)
+                        except tk.TclError:
+                            messagebox.showinfo(title="Warning", message="Empty clipboard")
+                            return
+
+                    self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box,
+                                                   font=Global().font)
+                    self.paste_btn.pack(anchor="e")
+
+                    self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
+                    self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
+
+                    def sign_data():
+                        key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
+                        if key is None:
+                            return ""
+                        data = self.msg_entry.get_value().encode("utf-8")
+                        if not Global().selected_alg.get_has_private(key):
+                            messagebox.showinfo("Key is public", "Key is public therefore we can not sign")
+                            return ""
+                        signature = Global().selected_alg.Sign(data, key)
+                        if len(signature) < 1000:
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0", signature)
+                            self.output_box.box.configure(state="disabled")
+                        else:
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0",
+                                                       "Signature is too big to show' please save into a file!")
+                            self.output_box.box.configure(state="disabled")
+                        if self.save_loc.path != "":
+                            with open(self.save_loc.path, "w") as f:
+                                f.write(signature)
+                        return signature
+
+                    self.output_box = TextBoxArea(not_from_file_frame, text="Output:")
+                    self.output_box.box.configure(state="disabled")
+
+                    self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                    self.sign_btn = ctk.CTkButton(not_from_file_frame, text="Sign", command=sign_data,
+                                                  font=Global().font)
+                    self.sign_btn.pack(pady=(10, 10))
+
+                    self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE,
+                                                text="Select save file location")
+                    self.save_loc.pack()
+
+                    def copy_output_to_clipboard():
+                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                        not_from_file_frame.clipboard_clear()
+                        not_from_file_frame.clipboard_append(text_to_copy)
+
+                    self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
+                                                  command=copy_output_to_clipboard, font=Global().font)
+                    self.copy_btn.pack(anchor="e", padx=(10, 20))
+
+            class FromFileClass:
 
                 def __init__(self, from_file_frame):
 
-
-                    self.from_file_asker = FileLocator(from_file_frame, text="File to Decrypt",
-                                                       on_path_not_found=lambda: self.decrypt_btn.configure(
+                    self.from_file_asker = FileLocator(from_file_frame, text="File to sign",
+                                                       on_path_not_found=lambda: self.sign_btn.configure(
                                                            state="disabled"),
-                                                       on_path_found=lambda: self.decrypt_btn.configure(state="normal"))
+                                                       on_path_found=lambda: self.sign_btn.configure(
+                                                           state="normal"))
                     self.from_file_asker.pack()
 
-                    def decrypt_data():
+                    def sign_data():
                         key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                         if key is None:
                             return ""
                         with open(self.from_file_asker.path, "rb") as f:
                             data = f.read()
-                        cipher = Global().selected_alg.Decrypt(data, key, b"")
-                        msg = cipher
-                        try:
-                            msg = msg.decode("utf-8")
-                            if len(msg) > 1000:
-                                raise Exception()
-                        except Exception:
-                            msg = "Message is too long or is bytes, please save into a file"
-                        self.output_box.box.configure(state="normal")
-                        self.output_box.box.delete("0.0", "end")
-                        self.output_box.box.insert("0.0", msg)
-                        self.output_box.box.configure(state="disabled")
+                        signature = Global().selected_alg.Sign(data, key)
+                        if len(signature) < 1000:
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0", signature)
+                            self.output_box.box.configure(state="disabled")
+                        else:
+                            self.output_box.box.configure(state="normal")
+                            self.output_box.box.delete("0.0", "end")
+                            self.output_box.box.insert("0.0", "Signature is too big to show' please save into a file!")
+                            self.output_box.box.configure(state="disabled")
                         if self.save_loc.path != "":
-                            with open(self.save_loc.path, "wb") as f:
-                                f.write(cipher)
-                        return cipher
+                            with open(self.save_loc.path, "w") as f:
+                                f.write(signature)
+                        return signature
 
                     self.output_box = TextBoxArea(from_file_frame, text="Output:")
                     self.output_box.box.configure(state="disabled")
 
                     self.output_box.pack(fill=tk.X, expand=True, anchor="w")
 
-                    self.decrypt_btn = ctk.CTkButton(from_file_frame, text="Decrypt", command=decrypt_data, font=Global().font)
-                    self.decrypt_btn.configure(state="disabled")
-                    self.decrypt_btn.pack(pady=(10, 10))
+                    self.sign_btn = ctk.CTkButton(from_file_frame, text="Sign", command=sign_data, font=Global().font)
+                    self.sign_btn.configure(state="disabled")
+                    self.sign_btn.pack(pady=(10, 10))
 
                     self.save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE,
                                                 text="Select save file location")
@@ -519,14 +650,11 @@ class APP:
                         from_file_frame.clipboard_clear()
                         from_file_frame.clipboard_append(text_to_copy)
 
-                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output", command=copy_output_to_clipboard, font=Global().font)
+                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
+                                                  command=copy_output_to_clipboard, font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
-        DecryptFrame()
 
-        # ------------- Sign gen frame ------------------ #
-
-        class SignatureFrame:
             def __init__(self):
                 self.from_file_frame = ctk.CTkFrame(signature_frame, fg_color=APP.frame_color)
 
@@ -545,136 +673,120 @@ class APP:
                 switch_frames()
 
                 # ------------------ if not from file is selected ----------------- #
-                class NotFromFileClass:
-                    def __init__(self, not_from_file_frame):
 
-                        def paste_to_msg_box():
-                            try:
-                                clipboard_content = not_from_file_frame.clipboard_get()
-                                self.msg_entry.box.delete("0.0", tk.END)
-                                self.msg_entry.box.insert(tk.INSERT, clipboard_content)
-                            except tk.TclError:
-                                messagebox.showinfo(title="Warning", message="Empty clipboard")
-                                return
-
-                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box, font=Global().font)
-                        self.paste_btn.pack(anchor="e")
-
-                        self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
-                        self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
-
-                        def sign_data():
-                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
-                            if key is None:
-                                return ""
-                            data = self.msg_entry.get_value().encode("utf-8")
-                            if not Global().selected_alg.get_has_private(key):
-                                messagebox.showinfo("Key is public", "Key is public therefore we can not sign")
-                                return ""
-                            signature = Global().selected_alg.Sign(data, key)
-                            if len(signature) < 1000:
-                                self.output_box.box.configure(state="normal")
-                                self.output_box.box.delete("0.0", "end")
-                                self.output_box.box.insert("0.0", signature)
-                                self.output_box.box.configure(state="disabled")
-                            else:
-                                self.output_box.box.configure(state="normal")
-                                self.output_box.box.delete("0.0", "end")
-                                self.output_box.box.insert("0.0",
-                                                           "Signature is too big to show' please save into a file!")
-                                self.output_box.box.configure(state="disabled")
-                            if self.save_loc.path != "":
-                                with open(self.save_loc.path, "w") as f:
-                                    f.write(signature)
-                            return signature
-
-                        self.output_box = TextBoxArea(not_from_file_frame, text="Output:")
-                        self.output_box.box.configure(state="disabled")
-
-                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
-
-                        self.sign_btn = ctk.CTkButton(not_from_file_frame, text="Sign", command=sign_data, font=Global().font)
-                        self.sign_btn.pack(pady=(10, 10))
-
-                        self.save_loc = FileLocator(not_from_file_frame, FileLocator.SAVE_FILE,
-                                                    text="Select save file location")
-                        self.save_loc.pack()
-
-                        def copy_output_to_clipboard():
-                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                            not_from_file_frame.clipboard_clear()
-                            not_from_file_frame.clipboard_append(text_to_copy)
-
-                        self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard, font=Global().font)
-                        self.copy_btn.pack(anchor="e", padx=(10, 20))
-
-                NotFromFileClass(self.not_from_file_frame)
+                SignatureFrame.NotFromFileClass(self.not_from_file_frame)
 
                 # ------------------ if from file is selected ----------------- #
 
-                class FromFileClass:
 
-                    def __init__(self, from_file_frame):
-
-                        self.from_file_asker = FileLocator(from_file_frame, text="File to sign",
-                                                           on_path_not_found=lambda: self.sign_btn.configure(
-                                                               state="disabled"),
-                                                           on_path_found=lambda: self.sign_btn.configure(
-                                                               state="normal"))
-                        self.from_file_asker.pack()
-
-                        def sign_data():
-                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
-                            if key is None:
-                                return ""
-                            with open(self.from_file_asker.path, "rb") as f:
-                                data = f.read()
-                            signature = Global().selected_alg.Sign(data, key)
-                            if len(signature) < 1000:
-                                self.output_box.box.configure(state="normal")
-                                self.output_box.box.delete("0.0", "end")
-                                self.output_box.box.insert("0.0", signature)
-                                self.output_box.box.configure(state="disabled")
-                            else:
-                                self.output_box.box.configure(state="normal")
-                                self.output_box.box.delete("0.0", "end")
-                                self.output_box.box.insert("0.0", "Signature is too big to show' please save into a file!")
-                                self.output_box.box.configure(state="disabled")
-                            if self.save_loc.path != "":
-                                with open(self.save_loc.path, "w") as f:
-                                    f.write(signature)
-                            return signature
-
-                        self.output_box = TextBoxArea(from_file_frame, text="Output:")
-                        self.output_box.box.configure(state="disabled")
-
-                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
-
-                        self.sign_btn = ctk.CTkButton(from_file_frame, text="Sign", command=sign_data, font=Global().font)
-                        self.sign_btn.configure(state="disabled")
-                        self.sign_btn.pack(pady=(10, 10))
-
-                        self.save_loc = FileLocator(from_file_frame, FileLocator.SAVE_FILE,
-                                                    text="Select save file location")
-                        self.save_loc.pack()
-
-                        def copy_output_to_clipboard():
-                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                            from_file_frame.clipboard_clear()
-                            from_file_frame.clipboard_append(text_to_copy)
-
-                        self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard, font=Global().font)
-                        self.copy_btn.pack(anchor="e", padx=(10, 20))
-
-                FromFileClass(self.from_file_frame)
+                SignatureFrame.FromFileClass(self.from_file_frame)
 
         SignatureFrame()
 
         # ------------- Verify gen frame ------------------ #
 
         class VerifyFrame:
+            class NotFromFileClass:
+                def __init__(self, not_from_file_frame):
+
+                    def paste_to_msg_box():
+                        try:
+                            clipboard_content = not_from_file_frame.clipboard_get()
+                            self.msg_entry.box.delete("0.0", tk.END)
+                            self.msg_entry.box.insert(tk.INSERT, clipboard_content)
+                        except tk.TclError:
+                            messagebox.showinfo(title="Warning", message="Empty clipboard")
+                            return
+
+                    self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box,
+                                                   font=Global().font)
+                    self.paste_btn.pack(anchor="e")
+
+                    self.msg_entry = TextBoxArea(not_from_file_frame, "Signature:")
+                    self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
+
+                    def verify_data():
+                        key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
+                        if key is None:
+                            return ""
+                        data = self.msg_entry.get_value().encode("utf-8")
+                        verification = Global().selected_alg.Verify(data, key)
+                        self.output_box.box.configure(state="normal")
+                        self.output_box.box.delete("0.0", "end")
+                        if verification:
+                            self.output_box.box.insert("0.0", "Verified successfully!")
+                        else:
+                            self.output_box.box.insert("0.0", "Verification unsuccessful, signature is wrong!")
+
+                        self.output_box.box.configure(state="disabled")
+                        return verification
+
+                    self.output_box = TextBoxArea(not_from_file_frame, text="Output:")
+                    self.output_box.box.configure(state="disabled")
+
+                    self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                    self.verify_btn = ctk.CTkButton(not_from_file_frame, text="Verify", command=verify_data,
+                                                    font=Global().font)
+                    self.verify_btn.pack(pady=(10, 10))
+
+                    def copy_output_to_clipboard():
+                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                        not_from_file_frame.clipboard_clear()
+                        not_from_file_frame.clipboard_append(text_to_copy)
+
+                    self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
+                                                  command=copy_output_to_clipboard, font=Global().font)
+                    self.copy_btn.pack(anchor="e", padx=(10, 20))
+
+            class FromFileClass:
+
+                def __init__(self, from_file_frame):
+                    self.password_entry = EntryBox(from_file_frame, "Key password: ")
+                    self.password_entry.pack()
+
+                    self.from_file_asker = FileLocator(from_file_frame, text="File to sign",
+                                                       on_path_not_found=lambda: self.verify_btn.configure(
+                                                           state="disabled"),
+                                                       on_path_found=lambda: self.verify_btn.configure(
+                                                           state="normal"))
+                    self.from_file_asker.pack()
+
+                    def verify_data():
+                        key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
+                        if key is None:
+                            return ""
+                        with open(self.from_file_asker.path, "r") as f:
+                            data = f.read()
+                        verification = Global().selected_alg.Verify(data, key)
+                        self.output_box.box.configure(state="normal")
+                        self.output_box.box.delete("0.0", "end")
+                        if verification:
+                            self.output_box.box.insert("0.0", "Verified successfully!")
+                        else:
+                            self.output_box.box.insert("0.0", "Verification unsuccessful, signature is wrong!")
+
+                        self.output_box.box.configure(state="disabled")
+                        return verification
+
+                    self.output_box = TextBoxArea(from_file_frame, text="Output:")
+                    self.output_box.box.configure(state="disabled")
+
+                    self.output_box.pack(fill=tk.X, expand=True, anchor="w")
+
+                    self.verify_btn = ctk.CTkButton(from_file_frame, text="Verify", command=verify_data, font=Global().font)
+                    self.verify_btn.configure(state="disabled")
+                    self.verify_btn.pack(pady=(10, 10))
+
+                    def copy_output_to_clipboard():
+                        text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
+                        from_file_frame.clipboard_clear()
+                        from_file_frame.clipboard_append(text_to_copy)
+
+                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
+                                                  command=copy_output_to_clipboard, font=Global().font)
+                    self.copy_btn.pack(anchor="e", padx=(10, 20))
+
             def __init__(self):
                 self.from_file_frame = ctk.CTkFrame(verify_frame, fg_color=APP.frame_color)
 
@@ -693,110 +805,13 @@ class APP:
                 switch_frames()
 
                 # ------------------ if not from file is selected ----------------- #
-                class NotFromFileClass:
-                    def __init__(self, not_from_file_frame):
 
-                        def paste_to_msg_box():
-                            try:
-                                clipboard_content = not_from_file_frame.clipboard_get()
-                                self.msg_entry.box.delete("0.0", tk.END)
-                                self.msg_entry.box.insert(tk.INSERT, clipboard_content)
-                            except tk.TclError:
-                                messagebox.showinfo(title="Warning", message="Empty clipboard")
-                                return
-
-                        self.paste_btn = ctk.CTkButton(not_from_file_frame, text="Paste", command=paste_to_msg_box, font=Global().font)
-                        self.paste_btn.pack(anchor="e")
-
-                        self.msg_entry = TextBoxArea(not_from_file_frame, "Signature:")
-                        self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
-
-                        def verify_data():
-                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
-                            if key is None:
-                                return ""
-                            data = self.msg_entry.get_value().encode("utf-8")
-                            verification = Global().selected_alg.Verify(data, key)
-                            self.output_box.box.configure(state="normal")
-                            self.output_box.box.delete("0.0", "end")
-                            if verification:
-                                self.output_box.box.insert("0.0", "Verified successfully!")
-                            else:
-                                self.output_box.box.insert("0.0", "Verification unsuccessful, signature is wrong!")
-
-                            self.output_box.box.configure(state="disabled")
-                            return verification
-
-                        self.output_box = TextBoxArea(not_from_file_frame, text="Output:")
-                        self.output_box.box.configure(state="disabled")
-
-                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
-
-                        self.verify_btn = ctk.CTkButton(not_from_file_frame, text="Verify", command=verify_data, font=Global().font)
-                        self.verify_btn.pack(pady=(10, 10))
-
-                        def copy_output_to_clipboard():
-                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                            not_from_file_frame.clipboard_clear()
-                            not_from_file_frame.clipboard_append(text_to_copy)
-
-                        self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard, font=Global().font)
-                        self.copy_btn.pack(anchor="e", padx=(10, 20))
-
-                NotFromFileClass(self.not_from_file_frame)
+                VerifyFrame.NotFromFileClass(self.not_from_file_frame)
 
                 # ------------------ if from file is selected ----------------- #
 
-                class FromFileClass:
 
-                    def __init__(self, from_file_frame):
-                        self.password_entry = EntryBox(from_file_frame, "Key password: ")
-                        self.password_entry.pack()
-
-                        self.from_file_asker = FileLocator(from_file_frame, text="File to sign",
-                                                           on_path_not_found=lambda: self.verify_btn.configure(
-                                                               state="disabled"),
-                                                           on_path_found=lambda: self.verify_btn.configure(
-                                                               state="normal"))
-                        self.from_file_asker.pack()
-
-                        def verify_data():
-                            key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
-                            if key is None:
-                                return ""
-                            with open(self.from_file_asker.path, "r") as f:
-                                data = f.read()
-                            verification = Global().selected_alg.Verify(data, key)
-                            self.output_box.box.configure(state="normal")
-                            self.output_box.box.delete("0.0", "end")
-                            if verification:
-                                self.output_box.box.insert("0.0", "Verified successfully!")
-                            else:
-                                self.output_box.box.insert("0.0", "Verification unsuccessful, signature is wrong!")
-
-                            self.output_box.box.configure(state="disabled")
-                            return verification
-
-                        self.output_box = TextBoxArea(from_file_frame, text="Output:")
-                        self.output_box.box.configure(state="disabled")
-
-                        self.output_box.pack(fill=tk.X, expand=True, anchor="w")
-
-                        self.verify_btn = ctk.CTkButton(from_file_frame, text="Verify", command=verify_data, font=Global().font)
-                        self.verify_btn.configure(state="disabled")
-                        self.verify_btn.pack(pady=(10, 10))
-
-                        def copy_output_to_clipboard():
-                            text_to_copy = self.output_box.box.get("0.0", tk.END).strip()
-                            from_file_frame.clipboard_clear()
-                            from_file_frame.clipboard_append(text_to_copy)
-
-                        self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                      command=copy_output_to_clipboard, font=Global().font)
-                        self.copy_btn.pack(anchor="e", padx=(10, 20))
-
-                FromFileClass(self.from_file_frame)
+                VerifyFrame.FromFileClass(self.from_file_frame)
 
         VerifyFrame()
 
