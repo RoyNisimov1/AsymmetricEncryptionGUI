@@ -17,7 +17,7 @@ class RadiobuttonManager:
             radiobutton = ctk.CTkRadioButton(self.frame,
                                              text=alg, font=Global().font,
                                              variable=self.chosen_alg_index,
-                                             value=index, command=self.command
+                                             value=index, command=Global.button_click_sfx(self.command)
                                              )
             alg_buttons.append(radiobutton)
             radiobutton.pack(side=ctk.LEFT, padx=10, pady=10)

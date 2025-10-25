@@ -47,6 +47,7 @@ class FileLocator:
 
         return lambda: None
 
+    @Global.button_click_sfx
     def select_save_file(self):
         file_path = tk.filedialog.asksaveasfilename(
             title="Select a File",
@@ -62,7 +63,7 @@ class FileLocator:
             self.on_path_not_found()
 
 
-
+    @Global.button_click_sfx
     def select_file(self):
         file_path = tk.filedialog.askopenfilename(
             title="Select a File",
@@ -77,6 +78,7 @@ class FileLocator:
             self.label.configure(text="No file selected.")
             self.on_path_not_found()
 
+    @Global.button_click_sfx
     def select_save_directory(self):
         selected_directory_v = filedialog.askdirectory(
             title="Select Save Directory",

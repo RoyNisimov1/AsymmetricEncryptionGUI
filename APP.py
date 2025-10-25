@@ -44,7 +44,6 @@ class APP:
             return None
 
         # -------------- Algorithm choosing widgets -------------- #
-        buttons = []
         selector_frame = ctk.CTkFrame(self.root, fg_color=APP.frame_color)
         selector_frame.pack()
         algs_titles = [alg.name for alg in Global().algorithms]
@@ -61,6 +60,7 @@ class APP:
         Global().selected_alg = Global().algorithms[algs_selector.chosen_alg_index.get()]
 
         # ------------- Select keyfile ------------------ #
+        buttons: list[ctk.CTkRadioButton] = []
 
         def show_buttons():
             for button in buttons:
@@ -180,8 +180,8 @@ class APP:
 
         def gen_keys_thread_task():
             priv, pub = Global().selected_alg.generate_key(int(key_size.get()))
-            priv_loc = os.path.join(dirSelector.path, "priv.clavis")
-            pub_loc = os.path.join(dirSelector.path, "pub.clavis")
+            priv_loc = os.path.join(dir_selector.path, "priv.clavis")
+            pub_loc = os.path.join(dir_selector.path, "pub.clavis")
 
             password = password_entry.get_value()
 
@@ -192,16 +192,17 @@ class APP:
                 AESWrapper.generate_key(password=b"", salt=key), msg))
 
             generate_button.configure(state="normal")
-            dirSelector.enable()
+            dir_selector.enable()
             password_entry.enable()
             generate_label.configure(text="Generated! ✅")
             self.root.after(1000, lambda: generate_label.configure(text=""))
 
+        @Global.button_click_sfx
         def generate_keys():
             key_gen_thread = threading.Thread(daemon=True, target=gen_keys_thread_task)
             generate_label.configure(text="Generating keys")
             generate_button.configure(state="disabled")
-            dirSelector.disable()
+            dir_selector.disable()
             password_entry.disable()
             key_gen_thread.start()
 
@@ -219,10 +220,10 @@ class APP:
         password_entry = EntryBox(key_gen_frame, text="Password: ")
         password_entry.pack(pady=10)
 
-        dirSelector = FileLocator(master=key_gen_frame, search_type=FileLocator.SAVE_DIR, text="Select save directory",
+        dir_selector = FileLocator(master=key_gen_frame, search_type=FileLocator.SAVE_DIR, text="Select save directory",
                                   on_path_found=lambda: generate_button.configure(state="normal"),
                                   on_path_not_found=lambda: generate_button.configure(state="disabled"))
-        dirSelector.pack()
+        dir_selector.pack()
 
         generate_button = ctk.CTkButton(key_gen_frame, command=generate_keys, text="Generate", state="disabled", font=Global().font)
         generate_button.pack(pady=25)
@@ -234,7 +235,7 @@ class APP:
         class EncryptFrame:
             class NotFromFileClass:
                 def __init__(self, not_from_file_frame):
-
+                    @Global.button_click_sfx
                     def paste_to_msg_box():
                         try:
                             clipboard_content = not_from_file_frame.clipboard_get()
@@ -250,6 +251,7 @@ class APP:
                     self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
                     self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
 
+                    @Global.button_click_sfx
                     def encrypt_data():
                         key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                         if key is None:
@@ -284,7 +286,7 @@ class APP:
                     self.save_loc.pack()
 
                     self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
+                                                  command=lambda: Global.button_click_sfx(Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip())), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             class FromFileClass:
@@ -298,6 +300,7 @@ class APP:
                                                            state="normal"))
                     self.from_file_asker.pack()
 
+                    @Global.button_click_sfx
                     def encrypt_data():
                         key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                         if key is None:
@@ -335,7 +338,7 @@ class APP:
 
 
                     self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
+                                                  command=lambda: Global.button_click_sfx(Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip())), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             def __init__(self):
@@ -381,6 +384,7 @@ class APP:
                                                        on_path_found=lambda: self.decrypt_btn.configure(state="normal"))
                     self.from_file_asker.pack()
 
+                    @Global.button_click_sfx
                     def decrypt_data():
                         key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                         if key is None:
@@ -419,13 +423,13 @@ class APP:
 
 
 
-                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output", command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
+                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output", command=lambda: Global.button_click_sfx(Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip())), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             class FromFileNotSelected:
                 def __init__(self, not_from_file_frame):
 
-
+                    @Global.button_click_sfx
                     def paste_to_msg_box():
                         try:
                             clipboard_content = not_from_file_frame.clipboard_get()
@@ -441,6 +445,7 @@ class APP:
                     self.msg_entry = TextBoxArea(not_from_file_frame, "Ciphertext: ")
                     self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
 
+                    @Global.button_click_sfx
                     def decrypt_data():
                         key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                         if key is None:
@@ -486,7 +491,7 @@ class APP:
 
 
                     self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
+                                                  command=lambda: Global.button_click_sfx(Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip())), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
 
@@ -518,7 +523,7 @@ class APP:
         class SignatureFrame:
             class NotFromFileClass:
                 def __init__(self, not_from_file_frame):
-
+                    @Global.button_click_sfx
                     def paste_to_msg_box():
                         try:
                             clipboard_content = not_from_file_frame.clipboard_get()
@@ -535,6 +540,7 @@ class APP:
                     self.msg_entry = TextBoxArea(not_from_file_frame, "Message:")
                     self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
 
+                    @Global.button_click_sfx
                     def sign_data():
                         key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                         if key is None:
@@ -575,7 +581,7 @@ class APP:
 
 
                     self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
+                                                  command=lambda: Global.button_click_sfx(Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip())), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             class FromFileClass:
@@ -589,6 +595,7 @@ class APP:
                                                            state="normal"))
                     self.from_file_asker.pack()
 
+                    @Global.button_click_sfx
                     def sign_data():
                         key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                         if key is None:
@@ -625,7 +632,7 @@ class APP:
                     self.save_loc.pack()
 
                     self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
+                                                  command=lambda: Global.button_click_sfx(Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip())), font=Global().font)
                     self.copy_btn.pack(anchor="e", padx=(10, 20))
 
 
@@ -662,7 +669,7 @@ class APP:
         class VerifyFrame:
             class NotFromFileClass:
                 def __init__(self, not_from_file_frame):
-
+                    @Global.button_click_sfx
                     def paste_to_msg_box():
                         try:
                             clipboard_content = not_from_file_frame.clipboard_get()
@@ -679,6 +686,7 @@ class APP:
                     self.msg_entry = TextBoxArea(not_from_file_frame, "Signature:")
                     self.msg_entry.pack(fill=tk.X, expand=True, anchor="w")
 
+                    @Global.button_click_sfx
                     def verify_data():
                         key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                         if key is None:
@@ -704,9 +712,7 @@ class APP:
                                                     font=Global().font)
                     self.verify_btn.pack(pady=(10, 10))
 
-                    self.copy_btn = ctk.CTkButton(not_from_file_frame, text="Copy output",
-                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
-                    self.copy_btn.pack(anchor="e", padx=(10, 20))
+
 
             class FromFileClass:
 
@@ -721,6 +727,7 @@ class APP:
                                                            state="normal"))
                     self.from_file_asker.pack()
 
+                    @Global.button_click_sfx
                     def verify_data():
                         key = load_key(file_locator.path, Global().password_field.get_value().encode("utf-8"))
                         if key is None:
@@ -747,10 +754,6 @@ class APP:
                     self.verify_btn.configure(state="disabled")
                     self.verify_btn.pack(pady=(10, 10))
 
-
-                    self.copy_btn = ctk.CTkButton(from_file_frame, text="Copy output",
-                                                  command=lambda: Global().copy_to_clip_board(self.output_box.box.get("0.0", tk.END).strip()), font=Global().font)
-                    self.copy_btn.pack(anchor="e", padx=(10, 20))
 
             def __init__(self):
                 self.from_file_frame = ctk.CTkFrame(verify_frame, fg_color=APP.frame_color)
