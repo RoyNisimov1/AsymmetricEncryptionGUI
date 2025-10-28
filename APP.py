@@ -10,7 +10,7 @@ from Components.textbox_area import TextBoxArea
 from Global import Global
 from Algorithms.Algorithm import Algorithm
 from Components.file_locator import FileLocator
-from Components.Radiobutton_manager import RadiobuttonManager
+from Components.radiobutton_manager import RadiobuttonManager
 
 
 class APP:
@@ -50,14 +50,14 @@ class APP:
         Global().selected_alg = Global().algorithms[0]
 
         def show_btn_wrapper():
-            Global().selected_alg = Global().algorithms[algs_selector.chosen_alg_index.get()]
+            Global().selected_alg = Global().algorithms[algs_selector.index.get()]
             if file_locator.path:
                 show_buttons()
 
         algs_selector = RadiobuttonManager(selector_frame, algs_titles, command=show_btn_wrapper)
         algs_selector.pack()
 
-        Global().selected_alg = Global().algorithms[algs_selector.chosen_alg_index.get()]
+        Global().selected_alg = Global().algorithms[algs_selector.index.get()]
 
         # ------------- Select keyfile ------------------ #
         buttons: list[ctk.CTkRadioButton] = []

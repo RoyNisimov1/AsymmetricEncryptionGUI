@@ -45,6 +45,7 @@ class Global:
         self.password_field = EntryBox(self.root, "Key password:", font=self.font)
         self.password_field.pack()
 
+    @button_click_sfx
     def copy_to_clip_board(self, text):
         self.root.clipboard_clear()
         self.root.clipboard_append(text)
